@@ -10,9 +10,7 @@
 "functions": {
 
 
-"api/[...path].js": { "includeFiles": ["data/", "backend/", "shared/**"] }
-
-
+"api/[...path].js": { "includeFiles": "{data,backend,shared}/**" }
 }
 
 
