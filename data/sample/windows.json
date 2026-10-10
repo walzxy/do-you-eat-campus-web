@@ -1,0 +1,104 @@
+[
+  {
+    "window_id": "W001",
+    "cafeteria_id": "C001",
+    "window_name": "米线窗口",
+    "remark": "绿叶餐厅一楼南侧"
+  },
+  {
+    "window_id": "W002",
+    "cafeteria_id": "C001",
+    "window_name": "盖浇饭窗口",
+    "remark": "绿叶餐厅一楼北侧"
+  },
+  {
+    "window_id": "W003",
+    "cafeteria_id": "C001",
+    "window_name": "麻辣烫窗口",
+    "remark": "绿叶餐厅一楼东侧"
+  },
+  {
+    "window_id": "W004",
+    "cafeteria_id": "C002",
+    "window_name": "意面焗饭窗口",
+    "remark": "缤纷谷西侧"
+  },
+  {
+    "window_id": "W005",
+    "cafeteria_id": "C002",
+    "window_name": "奶茶饮品吧",
+    "remark": "缤纷谷东侧"
+  },
+  {
+    "window_id": "W006",
+    "cafeteria_id": "C002",
+    "window_name": "自选简餐窗口",
+    "remark": "缤纷谷中间"
+  },
+  {
+    "window_id": "W007",
+    "cafeteria_id": "C003",
+    "window_name": "自选窗口",
+    "remark": "新食堂一楼左侧"
+  },
+  {
+    "window_id": "W008",
+    "cafeteria_id": "C003",
+    "window_name": "煎饼点心窗口",
+    "remark": "新食堂一楼右侧"
+  },
+  {
+    "window_id": "W009",
+    "cafeteria_id": "C003",
+    "window_name": "面食窗口",
+    "remark": "新食堂一楼中间"
+  },
+  {
+    "window_id": "W010",
+    "cafeteria_id": "C003",
+    "window_name": "麻辣香锅窗口",
+    "remark": "新食堂一楼后侧"
+  },
+  {
+    "window_id": "W011",
+    "cafeteria_id": "C004",
+    "window_name": "铁板烧窗口",
+    "remark": "新食堂二楼左侧"
+  },
+  {
+    "window_id": "W012",
+    "cafeteria_id": "C004",
+    "window_name": "石锅饭窗口",
+    "remark": "新食堂二楼中间"
+  },
+  {
+    "window_id": "W013",
+    "cafeteria_id": "C004",
+    "window_name": "瓦罐汤窗口",
+    "remark": "新食堂二楼右侧"
+  },
+  {
+    "window_id": "W014",
+    "cafeteria_id": "C004",
+    "window_name": "甜品饮品窗口",
+    "remark": "新食堂二楼后侧"
+  },
+  {
+    "window_id": "W015",
+    "cafeteria_id": "C005",
+    "window_name": "拉面窗口",
+    "remark": "清真食堂左侧"
+  },
+  {
+    "window_id": "W016",
+    "cafeteria_id": "C005",
+    "window_name": "大盘鸡窗口",
+    "remark": "清真食堂右侧"
+  },
+  {
+    "window_id": "W017",
+    "cafeteria_id": "C005",
+    "window_name": "清真点心窗口",
+    "remark": "清真食堂中间"
+  }
+]

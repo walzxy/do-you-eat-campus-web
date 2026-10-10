@@ -1,0 +1,32 @@
+[
+  {
+    "cafeteria_id": "C001",
+    "cafeteria_name": "绿叶餐厅",
+    "campus": "国定路校区",
+    "remark": "教学大楼旁，一楼"
+  },
+  {
+    "cafeteria_id": "C002",
+    "cafeteria_name": "缤纷谷餐厅",
+    "campus": "国定路校区",
+    "remark": "大学生活动中心旁"
+  },
+  {
+    "cafeteria_id": "C003",
+    "cafeteria_name": "新食堂一楼",
+    "campus": "武川路校区",
+    "remark": "武川路校区主食堂一楼"
+  },
+  {
+    "cafeteria_id": "C004",
+    "cafeteria_name": "新食堂二楼",
+    "campus": "武川路校区",
+    "remark": "武川路校区主食堂二楼，风味窗口"
+  },
+  {
+    "cafeteria_id": "C005",
+    "cafeteria_name": "清真食堂",
+    "campus": "国定路校区",
+    "remark": "绿叶餐厅旁"
+  }
+]

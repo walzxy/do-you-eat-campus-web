@@ -1,0 +1,5 @@
+/* 全局基础样式 - 地基阶段占位 */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; line-height: 1.5; color: #333; background-color: #fff; }
+a { color: inherit; text-decoration: none; }
+/* UI 样式待产品方案确定后补充 */
