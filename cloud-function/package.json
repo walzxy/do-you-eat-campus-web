@@ -5,9 +5,14 @@
   "description": "今天吃了么 - 校园食堂云函数 API（生产数据）",
   "main": "cloudfunction.js",
   "scripts": {
-    "test": "node -e \"console.log('云函数入口验证通过')\""
+    "test": "node -e \"require('./cloudfunction'); console.log('云函数启动验证通过')\""
   },
-  "dependencies": {},
+  "dependencies": {
+    "express": "^4.21.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.0",
+    "serverless-http": "^3.2.0"
+  },
   "engines": {
     "node": ">=18.0.0"
   }

@@ -1,13 +1,13 @@
 {
   "version": "3.0",
-  "envId": "{{env.EVN_ID}}",
+  "envId": "{{env.ENV_ID}}",
   "functionRoot": "./",
   "functions": [
     {
       "name": "campus-canteen-api",
       "timeout": 10,
       "memorySize": 128,
-      "runtime": "Nodejs18.16",
+      "runtime": "Nodejs20.19",
       "handler": "cloud-function/cloudfunction.main_handler",
       "ignore": [
         ".gitignore",
