@@ -147,3 +147,6 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+# 规范化的 Excel 源文件（安全目录管理，不入 Git）
+*.xlsx
+*.xls

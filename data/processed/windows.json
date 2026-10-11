@@ -1,1 +1,254 @@
-[]
+[
+  {
+    "window_id": "W001",
+    "cafeteria_id": "C001",
+    "window_name": "自选",
+    "remark": ""
+  },
+  {
+    "window_id": "W002",
+    "cafeteria_id": "C001",
+    "window_name": "砂锅煲仔菜",
+    "remark": ""
+  },
+  {
+    "window_id": "W003",
+    "cafeteria_id": "C001",
+    "window_name": "特色辛拉面",
+    "remark": ""
+  },
+  {
+    "window_id": "W004",
+    "cafeteria_id": "C001",
+    "window_name": "现烫牛肉米线",
+    "remark": ""
+  },
+  {
+    "window_id": "W005",
+    "cafeteria_id": "C001",
+    "window_name": "花式铁板黄金蛋炒饭系列",
+    "remark": ""
+  },
+  {
+    "window_id": "W006",
+    "cafeteria_id": "C001",
+    "window_name": "港式烧腊",
+    "remark": ""
+  },
+  {
+    "window_id": "W007",
+    "cafeteria_id": "C001",
+    "window_name": "果汁",
+    "remark": ""
+  },
+  {
+    "window_id": "W008",
+    "cafeteria_id": "C002",
+    "window_name": "快餐",
+    "remark": ""
+  },
+  {
+    "window_id": "W009",
+    "cafeteria_id": "C002",
+    "window_name": "面食",
+    "remark": ""
+  },
+  {
+    "window_id": "W010",
+    "cafeteria_id": "C002",
+    "window_name": "炒面",
+    "remark": ""
+  },
+  {
+    "window_id": "W011",
+    "cafeteria_id": "C002",
+    "window_name": "砂锅",
+    "remark": ""
+  },
+  {
+    "window_id": "W012",
+    "cafeteria_id": "C002",
+    "window_name": "砂锅饭",
+    "remark": ""
+  },
+  {
+    "window_id": "W013",
+    "cafeteria_id": "C002",
+    "window_name": "特供",
+    "remark": ""
+  },
+  {
+    "window_id": "W014",
+    "cafeteria_id": "C002",
+    "window_name": "煎饼果子",
+    "remark": ""
+  },
+  {
+    "window_id": "W015",
+    "cafeteria_id": "C003",
+    "window_name": "一楼·杨国福麻辣烫",
+    "remark": "一楼"
+  },
+  {
+    "window_id": "W016",
+    "cafeteria_id": "C003",
+    "window_name": "一楼·KFC",
+    "remark": "一楼"
+  },
+  {
+    "window_id": "W017",
+    "cafeteria_id": "C003",
+    "window_name": "一楼·铁板炒饭",
+    "remark": "一楼"
+  },
+  {
+    "window_id": "W018",
+    "cafeteria_id": "C003",
+    "window_name": "一楼·早点",
+    "remark": "一楼"
+  },
+  {
+    "window_id": "W019",
+    "cafeteria_id": "C003",
+    "window_name": "一楼·面条",
+    "remark": "一楼"
+  },
+  {
+    "window_id": "W020",
+    "cafeteria_id": "C003",
+    "window_name": "一楼·小锅水煮系列",
+    "remark": "一楼"
+  },
+  {
+    "window_id": "W021",
+    "cafeteria_id": "C003",
+    "window_name": "一楼·粤小肴云饺",
+    "remark": "一楼"
+  },
+  {
+    "window_id": "W022",
+    "cafeteria_id": "C003",
+    "window_name": "二楼·自选菜",
+    "remark": "二楼"
+  },
+  {
+    "window_id": "W023",
+    "cafeteria_id": "C004",
+    "window_name": "一楼·自选",
+    "remark": "一楼"
+  },
+  {
+    "window_id": "W024",
+    "cafeteria_id": "C004",
+    "window_name": "一楼·水饺",
+    "remark": "一楼"
+  },
+  {
+    "window_id": "W025",
+    "cafeteria_id": "C004",
+    "window_name": "一楼·特色米线",
+    "remark": "一楼"
+  },
+  {
+    "window_id": "W026",
+    "cafeteria_id": "C004",
+    "window_name": "一楼·大碗盖浇饭",
+    "remark": "一楼"
+  },
+  {
+    "window_id": "W027",
+    "cafeteria_id": "C004",
+    "window_name": "一楼·粉丝汤",
+    "remark": "一楼"
+  },
+  {
+    "window_id": "W028",
+    "cafeteria_id": "C004",
+    "window_name": "一楼·砂锅",
+    "remark": "一楼"
+  },
+  {
+    "window_id": "W029",
+    "cafeteria_id": "C004",
+    "window_name": "一楼·鱼锅",
+    "remark": "一楼"
+  },
+  {
+    "window_id": "W030",
+    "cafeteria_id": "C004",
+    "window_name": "一楼·点心",
+    "remark": "一楼"
+  },
+  {
+    "window_id": "W031",
+    "cafeteria_id": "C004",
+    "window_name": "一楼·啫啫煲",
+    "remark": "一楼"
+  },
+  {
+    "window_id": "W032",
+    "cafeteria_id": "C004",
+    "window_name": "一楼·贵州糯米拌饭",
+    "remark": "一楼"
+  },
+  {
+    "window_id": "W033",
+    "cafeteria_id": "C004",
+    "window_name": "一楼·手工卷凉皮",
+    "remark": "一楼"
+  },
+  {
+    "window_id": "W034",
+    "cafeteria_id": "C004",
+    "window_name": "一楼·原味煎饼",
+    "remark": "一楼"
+  },
+  {
+    "window_id": "W035",
+    "cafeteria_id": "C004",
+    "window_name": "一楼·汉堡",
+    "remark": "一楼"
+  },
+  {
+    "window_id": "W036",
+    "cafeteria_id": "C004",
+    "window_name": "一楼·手抓饼",
+    "remark": "一楼"
+  },
+  {
+    "window_id": "W037",
+    "cafeteria_id": "C004",
+    "window_name": "二楼·自选",
+    "remark": "二楼"
+  },
+  {
+    "window_id": "W038",
+    "cafeteria_id": "C004",
+    "window_name": "二楼·台湾面",
+    "remark": "二楼"
+  },
+  {
+    "window_id": "W039",
+    "cafeteria_id": "C004",
+    "window_name": "二楼·闽南风味",
+    "remark": "二楼"
+  },
+  {
+    "window_id": "W040",
+    "cafeteria_id": "C004",
+    "window_name": "二楼·东南亚风味",
+    "remark": "二楼"
+  },
+  {
+    "window_id": "W041",
+    "cafeteria_id": "C005",
+    "window_name": "一楼·西餐厅",
+    "remark": "一楼"
+  },
+  {
+    "window_id": "W042",
+    "cafeteria_id": "C005",
+    "window_name": "二楼·烤盘饭",
+    "remark": "二楼"
+  }
+]

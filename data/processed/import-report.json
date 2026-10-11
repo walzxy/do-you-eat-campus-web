@@ -1,0 +1,16 @@
+{
+  "source": "C:\\Users\\24664\\Documents\\do-you-eat-secure-data\\食堂菜品数据_v3_真实_20261008.xlsx",
+  "generated_at": "2026-10-11T07:25:33.343Z",
+  "counts": {
+    "cafeterias": 5,
+    "windows": 42,
+    "dishes": 262,
+    "acceptedCafeterias": 5,
+    "acceptedWindows": 42,
+    "acceptedDishes": 262,
+    "rejectedRows": 0,
+    "cascadeRejectedWindows": 0,
+    "cascadeRejectedDishes": 0
+  },
+  "rejected": []
+}

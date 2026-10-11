@@ -1,1 +1,32 @@
-[]
+[
+  {
+    "cafeteria_id": "C001",
+    "cafeteria_name": "第一食堂（绿叶餐厅）",
+    "campus": "",
+    "remark": "原名含别名括号；由佳蔚统计表转换"
+  },
+  {
+    "cafeteria_id": "C002",
+    "cafeteria_name": "第二食堂（清真）",
+    "campus": "",
+    "remark": "原名含别名括号；由佳蔚统计表转换"
+  },
+  {
+    "cafeteria_id": "C003",
+    "cafeteria_name": "第三食堂",
+    "campus": "",
+    "remark": "原名含别名括号；由佳蔚统计表转换"
+  },
+  {
+    "cafeteria_id": "C004",
+    "cafeteria_name": "第四食堂",
+    "campus": "",
+    "remark": "原名含别名括号；由佳蔚统计表转换"
+  },
+  {
+    "cafeteria_id": "C005",
+    "cafeteria_name": "第六食堂（西餐）",
+    "campus": "",
+    "remark": "原名含别名括号；由佳蔚统计表转换"
+  }
+]
