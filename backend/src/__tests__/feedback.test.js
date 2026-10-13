@@ -16,7 +16,7 @@ beforeEach(() => {
 });
 
 // ============================================================
-// 反馈提交 POST /api/feedback
+// 反馈提交 POST /api/feedback — 默认 file 模式
 // ============================================================
 describe('反馈提交 POST /api/feedback', () => {
   // 1. 完整反馈提交
@@ -222,5 +222,73 @@ describe('反馈提交 POST /api/feedback', () => {
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);
     expect(res.body.error.message).toContain('菜品不存在');
+  });
+});
+
+// ============================================================
+// CloudBase 存储模式测试（通过 _setStoreForTest 注入 mock）
+// ============================================================
+describe('CloudBase 存储模式', () => {
+  it('CloudBase 保存成功应返回 201', async () => {
+    const mockSave = vi.fn().mockResolvedValue({
+      feedback_id: 'FBtest123',
+      issue_type: '其他',
+      description: '云数据库测试',
+      cafeteria_id: null,
+      window_id: null,
+      dish_id: null,
+      status: 'pending',
+      created_at: new Date().toISOString(),
+    });
+    const mockStore = { save: mockSave, findAll: vi.fn(), findById: vi.fn() };
+
+    // 注入 mock store（不会影响其他测试的 file 模式）
+    const feedbackRepo = require('../repositories/feedbackRepository');
+    feedbackRepo._setStoreForTest(mockStore);
+
+    const res = await request(app)
+      .post('/api/feedback')
+      .send({ issue_type: '其他', description: '云数据库测试' });
+    expect(res.status).toBe(201);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data).toHaveProperty('feedback_id', 'FBtest123');
+    expect(res.body.data).toHaveProperty('status', 'pending');
+    expect(res.body.data).toHaveProperty('created_at');
+    expect(mockSave).toHaveBeenCalledTimes(1);
+
+    // 恢复 file 模式 store
+    feedbackRepo._setStoreForTest(null);
+  });
+
+  it('CloudBase 写入失败应返回 500', async () => {
+    const mockSave = vi.fn().mockRejectedValue(new Error('写入失败'));
+    const mockStore = { save: mockSave, findAll: vi.fn(), findById: vi.fn() };
+
+    const feedbackRepo = require('../repositories/feedbackRepository');
+    feedbackRepo._setStoreForTest(mockStore);
+
+    const res = await request(app)
+      .post('/api/feedback')
+      .send({ issue_type: '其他', description: '模拟写入失败' });
+    expect(res.status).toBe(500);
+    expect(res.body.success).toBe(false);
+
+    feedbackRepo._setStoreForTest(null);
+  });
+
+  it('CloudBase 初始化失败应返回 500', async () => {
+    const mockSave = vi.fn().mockRejectedValue(new Error('CloudBase 数据库初始化失败: 连接超时'));
+    const mockStore = { save: mockSave, findAll: vi.fn(), findById: vi.fn() };
+
+    const feedbackRepo = require('../repositories/feedbackRepository');
+    feedbackRepo._setStoreForTest(mockStore);
+
+    const res = await request(app)
+      .post('/api/feedback')
+      .send({ issue_type: '其他', description: '模拟初始化失败' });
+    expect(res.status).toBe(500);
+    expect(res.body.success).toBe(false);
+
+    feedbackRepo._setStoreForTest(null);
   });
 });

@@ -92,14 +92,15 @@ class CloudBaseFeedbackStore {
     if (this._initialized) return;
     try {
       const cloudbase = require('@cloudbase/node-sdk');
-      const app = cloudbase.init({
-        env: process.env.ENV_ID || process.env.TCB_ENV,
-      });
+      const envId = process.env.ENV_ID || process.env.TCB_ENV;
+      // 有 envId 时传入，无 envId 时由 SDK 自动检测环境
+      // 避免传入 undefined 导致 INVALID_PARAMS 错误
+      const app = envId ? cloudbase.init({ env: envId }) : cloudbase.init();
       this._db = app.database();
       this._collection = this._db.collection('feedback');
       this._initialized = true;
     } catch (err) {
-      // 云数据库不可用时降级：抛出让上层处理，不静默写本地
+      // 云数据库不可用时抛出让上层处理，不静默写本地
       throw new Error('CloudBase 数据库初始化失败: ' + err.message);
     }
   }
@@ -135,14 +136,44 @@ class CloudBaseFeedbackStore {
 
 // ============================================================
 // 统一导出 — 根据 FEEDBACK_STORAGE 选择后端
+// 导出 store 对象，支持运行时切换（主要用于测试）
 // ============================================================
 const storageMode = config.feedbackStorage;
 
-let store;
+let _activeStore;
 if (storageMode === 'cloudbase') {
-  store = new CloudBaseFeedbackStore();
+  _activeStore = new CloudBaseFeedbackStore();
 } else {
-  store = new FileFeedbackStore();
+  _activeStore = new FileFeedbackStore();
+}
+
+const store = {
+  findAll() { return _activeStore.findAll(...arguments); },
+  findById(id) { return _activeStore.findById(id); },
+  save(data) { return _activeStore.save(data); },
+};
+
+/**
+ * 测试用：运行时替换存储后端（供测试直接注入 mock store）
+ * 传入 null/undefined 恢复为默认后端。
+ * Normal usage should never call this.
+ */
+function _setStoreForTest(mockStore) {
+  if (mockStore) {
+    _activeStore = mockStore;
+  } else {
+    // 恢复默认
+    if (storageMode === 'cloudbase') {
+      _activeStore = new CloudBaseFeedbackStore();
+    } else {
+      _activeStore = new FileFeedbackStore();
+    }
+  }
+  // 更新代理方法
+  store.findAll = function () { return _activeStore.findAll(...arguments); };
+  store.findById = function (id) { return _activeStore.findById(id); };
+  store.save = function (data) { return _activeStore.save(data); };
 }
 
 module.exports = store;
+module.exports._setStoreForTest = _setStoreForTest;
