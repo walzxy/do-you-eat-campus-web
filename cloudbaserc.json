@@ -15,5 +15,19 @@
         ".git"
       ]
     }
-  ]
+  ],
+  "gateway": {
+    "routes": [
+      {
+        "path": "/api",
+        "target": "function:campus-canteen-api",
+        "rewriteUrl": true
+      },
+      {
+        "path": "/api/*",
+        "target": "function:campus-canteen-api",
+        "rewriteUrl": true
+      }
+    ]
+  }
 }
