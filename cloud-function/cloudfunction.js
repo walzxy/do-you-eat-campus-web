@@ -45,6 +45,8 @@ validateDataFiles();
 // 加载 Express app，DATA_SOURCE 强制指向 processed 目录
 process.env.DATA_SOURCE = DATA_DIR;
 process.env.NODE_ENV = 'production';
+// 云函数环境使用云数据库存储反馈
+process.env.FEEDBACK_STORAGE = 'cloudbase';
 
 const app = require('../backend/src/app');
 

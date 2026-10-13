@@ -18,6 +18,9 @@ const config = {
   // 明确设置 DATA_SOURCE 环境变量可覆盖默认路径
   activeDataDir: process.env.DATA_SOURCE || defaultDataDir,
   logLevel: process.env.LOG_LEVEL || 'info',
+  // 反馈存储后端：file（本地 JSON 文件）| cloudbase（云开发数据库）
+  // 本地开发默认 file，云函数环境设为 cloudbase
+  feedbackStorage: process.env.FEEDBACK_STORAGE || 'file',
 };
 
 module.exports = { config };

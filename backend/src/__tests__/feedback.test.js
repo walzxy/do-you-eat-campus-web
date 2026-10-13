@@ -191,16 +191,17 @@ describe('反馈提交 POST /api/feedback', () => {
     expect(res.body.data.status).toBe('pending');
   });
 
-  // 14. 编号自增
-  it('多条反馈反馈编号自增', async () => {
+  // 14. 反馈编号格式正确且唯一
+  it('反馈编号格式正确且不重复', async () => {
     const res1 = await request(app)
       .post('/api/feedback')
       .send({ issue_type: '其他', description: '第一条' });
-    expect(res1.body.data.feedback_id).toBe('FB001');
+    expect(res1.body.data.feedback_id).toMatch(/^FB[a-z0-9]{8,15}$/);
     const res2 = await request(app)
       .post('/api/feedback')
       .send({ issue_type: '其他', description: '第二条' });
-    expect(res2.body.data.feedback_id).toBe('FB002');
+    expect(res2.body.data.feedback_id).toMatch(/^FB[a-z0-9]{8,15}$/);
+    expect(res2.body.data.feedback_id).not.toBe(res1.body.data.feedback_id);
   });
 
   // 15. 不存在的窗口
