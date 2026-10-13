@@ -1,33 +1,16 @@
 {
-  "version": "3.0",
-  "envId": "{{env.ENV_ID}}",
-  "functionRoot": "./",
-  "functions": [
-    {
-      "name": "campus-canteen-api",
-      "timeout": 10,
-      "memorySize": 128,
-      "runtime": "Nodejs20.19",
-      "handler": "cloud-function/cloudfunction.main_handler",
-      "ignore": [
-        ".gitignore",
-        "node_modules",
-        ".git"
-      ]
-    }
-  ],
-  "gateway": {
-    "routes": [
-      {
-        "path": "/api",
-        "target": "function:campus-canteen-api",
-        "rewriteUrl": true
-      },
-      {
-        "path": "/api/*",
-        "target": "function:campus-canteen-api",
-        "rewriteUrl": true
-      }
-    ]
-  }
+  "envId": "doyeat-d0golk77lb63ff44e",
+  "version": "2.1",
+  "functions": [{
+    "name": "campus-canteen-api",
+    "dir": "./",
+    "type": "Event",
+    "runtime": "Nodejs20.19",
+    "handler": "cloud-function/cloudfunction.main_handler",
+    "installDependency": true,
+    "timeout": 20,
+    "memorySize": 512,
+    "ignore": ["frontend", "frontend/", "**/node_modules/", ".git", ".git/"]
+  }],
+  "gateway": { "routes": [{ "path": "/api", "target": "function:campus-canteen-api" }] }
 }
