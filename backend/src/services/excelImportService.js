@@ -262,6 +262,17 @@ class ExcelImportService {
     }
   }
 
+  /**
+   * 从 Buffer 解析并校验（用于上传预览）
+   * @param {Buffer} buffer - Excel 文件 buffer
+   * @returns {Object} 校验结果（与 validate 格式一致）
+   */
+  parseBuffer(buffer) {
+    const workbook = XLSX.read(buffer, { type: 'buffer', cellDates: true });
+    const result = validateWorkbook(workbook);
+    return { valid: result.rejected.length === 0, ...result };
+  }
+
   import(filePath, options = {}) {
     const outputDir = path.resolve(options.outputDir || config.activeDataDir);
     let stagingDir;

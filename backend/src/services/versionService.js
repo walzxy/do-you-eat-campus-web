@@ -108,14 +108,7 @@ function rollback() {
   const snapshot = JSON.parse(fs.readFileSync(snapshotFile, 'utf8'));
   const dataDir = config.activeDataDir;
 
-  for (const [file, data] of Object.entries(snapshot)) {
-    const filePath = path.resolve(dataDir, file);
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
-  }
-
-  // 更新 meta：回滚后，当前版本变为被回滚的这一版，previous 不变
-  // 注意：回滚操作本身不产生新版本，只是把数据恢复到上一版本
-  // 更安全的做法：把回滚也记录为一个新版本
+  // 先生成回滚版本 ID
   const now = new Date();
   const rollbackVersionId = 'RVB' +
     now.getFullYear() +
@@ -125,9 +118,10 @@ function rollback() {
     String(now.getMinutes()).padStart(2, '0') +
     String(now.getSeconds()).padStart(2, '0');
 
-  // 把回滚前的当前版本备份一下
+  // 1. 先把回滚前的当前版本备份（在覆盖之前）
   const currentSnapshot = {};
-  for (const file of Object.keys(snapshot)) {
+  const collections = Object.keys(snapshot);
+  for (const file of collections) {
     const filePath = path.resolve(dataDir, file);
     if (fs.existsSync(filePath)) {
       currentSnapshot[file] = JSON.parse(fs.readFileSync(filePath, 'utf8'));
@@ -135,6 +129,12 @@ function rollback() {
   }
   const currentSnapshotFile = path.resolve(VERSIONS_DIR, rollbackVersionId + '.json');
   fs.writeFileSync(currentSnapshotFile, JSON.stringify(currentSnapshot, null, 2), 'utf8');
+
+  // 2. 再写回旧版本数据
+  for (const [file, data] of Object.entries(snapshot)) {
+    const filePath = path.resolve(dataDir, file);
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
+  }
 
   const rollbackEntry = {
     version_id: rollbackVersionId,

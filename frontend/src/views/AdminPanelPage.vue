@@ -120,8 +120,8 @@
         </div>
         <div class="form-group"><label>大类</label><input v-model="editForm.category_major" class="form-input" /></div>
         <div class="form-group"><label>小类</label><input v-model="editForm.category_minor" class="form-input" /></div>
-        <div v-if="!isEditing" class="form-group"><label>口味</label><input v-model="editForm.flavor" class="form-input" /></div>
-        <div v-if="!isEditing" class="form-group">
+        <div class="form-group"><label>口味</label><input v-model="editForm.flavor" class="form-input" /></div>
+        <div class="form-group">
           <label>打包</label>
           <select v-model="editForm.is_packable" class="form-input">
             <option value="未知">未知</option><option value="是">是</option><option value="否">否</option>
@@ -155,7 +155,15 @@ export default {
     onMounted(async () => {
       if (!isLoggedIn()) { router.push('/admin'); return; }
       try { await adminVerify(); } catch { clearToken(); window.location.hash = '#/admin'; return; }
-      loadDishes(); loadFeedbacks(); loadVersionInfo(); loadChangeLog(); loadCafeterias();
+      try {
+        await Promise.all([
+          loadDishes().catch(e => console.warn('[Admin] 初始化加载菜品失败', e)),
+          loadFeedbacks().catch(e => console.warn('[Admin] 初始化加载反馈失败', e)),
+          loadVersionInfo().catch(e => console.warn('[Admin] 初始化加载版本信息失败', e)),
+          loadChangeLog().catch(e => console.warn('[Admin] 初始化加载变更日志失败', e)),
+          loadCafeterias().catch(e => console.warn('[Admin] 初始化加载食堂失败', e)),
+        ]);
+      } catch (e) { console.warn('[Admin] 页面初始化加载统一错误', e); }
     });
 
     const tab = ref('dishes');
@@ -174,20 +182,21 @@ export default {
     const windows = ref([]);
     const editForm = ref({ dish_name: '', keywords: '', cafeteria_id: '', window_id: '', price_min: 0, price_max: 0, category_major: '', category_minor: '', flavor: '', is_packable: '未知', reason: '' });
     const versionInfo = ref(null);
+    const changeLog = ref([]);
 async function searchDishes() {
       dishesLoading.value = true;
       try { const r = await adminListDishes(dishKeyword.value); dishes.value = r.data.data || r.data || []; }
-      catch { dishes.value = []; } finally { dishesLoading.value = false; }
+      catch (e) { console.warn('[Admin] searchDishes 查询失败', e); dishes.value = []; } finally { dishesLoading.value = false; }
     }
     async function loadDishes() {
       dishesLoading.value = true;
       try { const r = await adminListDishes(); dishes.value = r.data.data || r.data || []; }
-      catch { dishes.value = []; } finally { dishesLoading.value = false; }
+      catch (e) { console.warn('[Admin] loadDishes 查询失败', e); dishes.value = []; } finally { dishesLoading.value = false; }
     }
     async function loadFeedbacks() {
       feedbacksLoading.value = true;
       try { const r = await adminListFeedbacks(feedbackFilter.value); feedbacks.value = r.data.data || []; }
-      catch { feedbacks.value = []; } finally { feedbacksLoading.value = false; }
+      catch (e) { console.warn('[Admin] loadFeedbacks 查询失败', e); feedbacks.value = []; } finally { feedbacksLoading.value = false; }
     }
     function statusLabel(s) { return { pending: '待处理', processing: '处理中', resolved: '已解决', ignored: '已忽略' }[s] || s; }
     async function updateFBStatus(fb, status) {
@@ -200,12 +209,12 @@ async function searchDishes() {
       catch (e) { alert('操作失败: ' + e.message); }
     }
     async function loadCafeterias() {
-      try { const r = await adminGetCafeterias(); cafeterias.value = r.data.data || []; } catch {}
+      try { const r = await adminGetCafeterias(); cafeterias.value = r.data.data || []; } catch (e) { console.warn('[Admin] loadCafeterias 查询失败', e); cafeterias.value = []; }
     }
     async function onCafeteriaChange() {
       editForm.value.window_id = '';
       if (!editForm.value.cafeteria_id) { windows.value = []; return; }
-      try { const r = await adminGetWindowsByCafeteria(editForm.value.cafeteria_id); windows.value = r.data.data || []; } catch { windows.value = []; }
+      try { const r = await adminGetWindowsByCafeteria(editForm.value.cafeteria_id); windows.value = r.data.data || []; } catch (e) { console.warn('[Admin] loadWindows 查询失败', e); windows.value = []; }
     }
     function openEditDish(dish) {
       isEditing.value = true; isCopying.value = false;
@@ -228,7 +237,7 @@ async function searchDishes() {
       saving.value = true; modalError.value = '';
       try {
         if (isEditing.value) {
-          await adminUpdateDish(editForm.value._id, { dish_name: editForm.value.dish_name, keywords: editForm.value.keywords, price_min: editForm.value.price_min, price_max: editForm.value.price_max, category_major: editForm.value.category_major, category_minor: editForm.value.category_minor, reason: editForm.value.reason });
+          await adminUpdateDish(editForm.value._id, { dish_name: editForm.value.dish_name, keywords: editForm.value.keywords, price_min: editForm.value.price_min, price_max: editForm.value.price_max, category_major: editForm.value.category_major, category_minor: editForm.value.category_minor, flavor: editForm.value.flavor, is_packable: editForm.value.is_packable, reason: editForm.value.reason });
         } else if (isCopying.value) {
           await adminCopyDish(editForm.value._copyFrom, { dish_name: editForm.value.dish_name, price_min: editForm.value.price_min, price_max: editForm.value.price_max, keywords: editForm.value.keywords, reason: editForm.value.reason });
         } else {
@@ -237,8 +246,8 @@ async function searchDishes() {
         closeDishModal(); loadDishes();
       } catch (e) { modalError.value = e.message || '保存失败'; } finally { saving.value = false; }
     }
-    async function loadVersionInfo() { try { const r = await adminGetVersions(); versionInfo.value = r.data; } catch {} }
-    async function loadChangeLog() { try { const r = await adminGetChangeLog(); changeLog.value = r.data; } catch {} }
+    async function loadVersionInfo() { try { const r = await adminGetVersions(); versionInfo.value = r.data; } catch (e) { console.warn('[Admin] loadVersionInfo 查询失败', e); } }
+    async function loadChangeLog() { try { const r = await adminGetChangeLog(); changeLog.value = r.data; } catch (e) { console.warn('[Admin] loadChangeLog 查询失败', e); } }
     async function doRollback() {
       if (!confirm('确认回滚到上一版本？')) return;
       try { await adminRollback('手动回滚'); alert('回滚成功'); loadVersionInfo(); loadDishes(); }

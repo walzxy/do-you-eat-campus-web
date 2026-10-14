@@ -61,6 +61,16 @@ class FileFeedbackStore {
     return items.find(item => item.feedback_id === id) || null;
   }
 
+  updateStatus(feedbackId, status) {
+    const items = this._readAll();
+    const index = items.findIndex(f => f.feedback_id === feedbackId);
+    if (index === -1) return null;
+    const oldStatus = items[index].status;
+    items[index].status = status;
+    this._writeAll(items);
+    return { ...items[index], old_status: oldStatus };
+  }
+
   save(feedbackData) {
     const items = this._readAll();
     const feedback = {
@@ -117,6 +127,16 @@ class CloudBaseFeedbackStore {
     return (res.data && res.data.length > 0) ? res.data[0] : null;
   }
 
+  async updateStatus(feedbackId, status) {
+    this._ensureInit();
+    const res = await this._collection.where({ feedback_id: feedbackId }).get();
+    if (!res.data || res.data.length === 0) return null;
+    const doc = res.data[0];
+    const oldStatus = doc.status;
+    await this._collection.doc(doc._id).update({ status });
+    return { ...doc, status, old_status: oldStatus };
+  }
+
   async save(feedbackData) {
     this._ensureInit();
     const feedback = {
@@ -150,6 +170,7 @@ if (storageMode === 'cloudbase') {
 const store = {
   findAll() { return _activeStore.findAll(...arguments); },
   findById(id) { return _activeStore.findById(id); },
+  updateStatus(feedbackId, status) { return _activeStore.updateStatus(feedbackId, status); },
   save(data) { return _activeStore.save(data); },
 };
 
@@ -172,6 +193,7 @@ function _setStoreForTest(mockStore) {
   // 更新代理方法
   store.findAll = function () { return _activeStore.findAll(...arguments); };
   store.findById = function (id) { return _activeStore.findById(id); };
+  store.updateStatus = function (feedbackId, status) { return _activeStore.updateStatus(feedbackId, status); };
   store.save = function (data) { return _activeStore.save(data); };
 }
 
