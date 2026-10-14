@@ -56,6 +56,17 @@ const routes = [
     name: 'Onboarding',
     component: () => import('../views/OnboardingPage.vue'),
   },
+  // ---- 管理端路由 ----
+  {
+    path: '/admin',
+    name: 'AdminLogin',
+    component: () => import('../views/AdminLoginPage.vue'),
+  },
+  {
+    path: '/admin/panel',
+    name: 'AdminPanel',
+    component: () => import('../views/AdminPanelPage.vue'),
+  },
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',

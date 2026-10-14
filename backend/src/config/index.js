@@ -21,6 +21,8 @@ const config = {
   // 反馈存储后端：file（本地 JSON 文件）| cloudbase（云开发数据库）
   // 本地开发默认 file，云函数环境设为 cloudbase
   feedbackStorage: process.env.FEEDBACK_STORAGE || 'file',
+  // 管理口令：从环境变量读取，禁止写入前端代码或 Git
+  adminPassword: process.env.ADMIN_PASSWORD || '',
 };
 
 module.exports = { config };

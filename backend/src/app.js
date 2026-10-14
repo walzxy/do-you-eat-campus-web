@@ -9,6 +9,7 @@ const feedbackRoute = require('./routes/feedback');
 const windowController = require('./controllers/windowController');
 const errorHandler = require('./middleware/errorHandler');
 const requestLogger = require('./middleware/requestLogger');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 
@@ -29,6 +30,9 @@ app.get('/api/cafeterias/:cafeteriaId/windows', windowController.listWindowsByCa
 
 // 窗口下的菜品列表
 app.get('/api/windows/:windowId/dishes', require('./controllers/dishController').listDishesByWindow);
+
+// 管理端路由（需要认证 Token）
+app.use('/api/admin', adminRoutes);
 
 // 404 兜底 - 未匹配路由
 app.use((req, res) => {
