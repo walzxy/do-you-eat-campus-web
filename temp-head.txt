@@ -1,0 +1,60 @@
+﻿// 管理端控制器 — 认证、菜品管理、反馈管理、导入发布、版本管理
+const { success, fail } = require('../utils/response');
+const adminAuth = require('../middleware/adminAuth');
+const dishRepository = require('../repositories/dishRepository');
+const cafeteriaRepository = require('../repositories/cafeteriaRepository');
+const windowRepository = require('../repositories/windowRepository');
+const feedbackRepository = require('../repositories/feedbackRepository');
+const changeLogService = require('../services/changeLogService');
+const versionService = require('../services/versionService');
+const excelImportService = require('../services/excelImportService');
+
+// ============================================================
+// 认证
+// ============================================================
+
+// POST /api/admin/login
+function login(req, res) {
+  const { password } = req.body;
+  if (!password) {
+    return fail(res, '请输入管理口令', 400);
+  }
+  const result = adminAuth.login(password);
+  if (!result.success) {
+    return fail(res, result.message || '口令错误', 401);
+  }
+  return success(res, { token: result.token });
+}
+
+// GET /api/admin/verify
+function verify(req, res) {
+  return adminAuth.verifyEndpoint(req, res);
+}
+
+// ============================================================
+// 菜品管理
+// ============================================================
+
+// GET /api/admin/dishes
+function listDishes(req, res) {
+  const { keyword } = req.query;
+  let dishes;
+  if (keyword && keyword.trim()) {
+    dishes = dishRepository.searchByKeyword(keyword.trim());
+  } else {
+    dishes = dishRepository.findAll();
+  }
+  return success(res, { data: dishes, total: dishes.length });
+}
+
+// GET /api/admin/dishes/:dishId
+function getDish(req, res) {
+  const { dishId } = req.params;
+  const dish = dishRepository.findById(dishId);
+  if (!dish) return fail(res, '菜品不存在: ' + dishId, 404);
+  const cafeteria = cafeteriaRepository.findById(dish.cafeteria_id);
+  const window = windowRepository.findById(dish.window_id);
+  return success(res, {
+    ...dish,
+    cafeteria_name: cafeteria ? cafeteria.cafeteria_name : null,
+    window_name: window ? window.window_name : null,

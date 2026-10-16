@@ -1,0 +1,11 @@
+{
+  "name": "今天吃了么",
+  "appid": "__UNI__TODAYEAT",
+  "description": "校园食堂吃什么助手",
+  "versionName": "0.1.0",
+  "versionCode": "10",
+  "transformPx": false,
+  "h5": {
+    "title": "今天吃了么"
+  }
+}

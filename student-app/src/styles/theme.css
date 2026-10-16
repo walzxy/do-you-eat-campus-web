@@ -1,0 +1,89 @@
+:root {
+  --bg: #fff8ef;
+  --main: #ff873d;
+  --dark-orange: #e96f24;
+  --light-orange: #fff0df;
+  --card: #fff4e8;
+  --text: #292621;
+  --muted: #947968;
+  --border: #f2d7be;
+  --white: #ffffff;
+}
+
+page {
+  min-height: 100%;
+}
+
+.page-shell {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding: 40rpx 32rpx calc(140rpx + env(safe-area-inset-bottom));
+  background: var(--bg);
+}
+
+.content-width {
+  width: 100%;
+  max-width: 750rpx;
+  margin: 0 auto;
+}
+
+.eyebrow {
+  color: var(--main);
+  font-size: 26rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+}
+
+.page-title {
+  display: block;
+  margin-top: 12rpx;
+  color: var(--text);
+  font-size: 48rpx;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.page-subtitle {
+  display: block;
+  margin-top: 12rpx;
+  color: var(--muted);
+  font-size: 28rpx;
+  line-height: 1.6;
+}
+
+.section-title {
+  color: var(--text);
+  font-size: 34rpx;
+  font-weight: 800;
+}
+
+.section-caption {
+  display: block;
+  margin-top: 8rpx;
+  color: var(--muted);
+  font-size: 25rpx;
+  line-height: 1.55;
+}
+
+.primary-button {
+  height: 100rpx;
+  border-radius: 50rpx;
+  background: linear-gradient(135deg, #ff963f, #ff7835);
+  box-shadow: 0 16rpx 28rpx rgba(233, 111, 36, 0.18);
+  color: var(--white);
+  font-size: 34rpx;
+  font-weight: 800;
+  line-height: 100rpx;
+}
+
+.primary-button:active {
+  opacity: 0.86;
+  transform: scale(0.99);
+}
+
+.soft-card {
+  border: 2rpx solid rgba(242, 215, 190, 0.75);
+  border-radius: 32rpx;
+  background: var(--card);
+  box-shadow: 0 16rpx 40rpx rgba(173, 105, 50, 0.07);
+}
