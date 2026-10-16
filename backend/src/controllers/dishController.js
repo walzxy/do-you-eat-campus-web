@@ -4,10 +4,10 @@ const cafeteriaRepository = require('../repositories/cafeteriaRepository');
 const windowRepository = require('../repositories/windowRepository');
 const { success, fail } = require('../utils/response');
 
-// GET /api/dishes/search?keyword=&category_major=&category_minor=&budget=&flavor=&is_packable=
+// GET /api/dishes/search?keyword=&category_major=&category_minor=&cafeteria_id=&budget=&flavor=&is_packable=
 // 组合筛选搜索菜品
 function searchDishes(req, res) {
-  const { keyword, category_major, category_minor, budget, flavor, is_packable } = req.query;
+  const { keyword, category_major, category_minor, cafeteria_id, budget, flavor, is_packable } = req.query;
 
   // 参数校验
   // is_packable 仅允许：是、否、未知
@@ -33,13 +33,14 @@ function searchDishes(req, res) {
     keyword: keyword || '',
     category_major: category_major || '',
     category_minor: category_minor || '',
+    cafeteria_id: cafeteria_id || '',
     budget: budgetNum,
     flavor: flavor || '',
     is_packable: is_packable || '',
   };
 
   // 如果没有任何有效筛选条件（包括 keyword），返回全部菜品
-  const hasFilter = keyword || category_major || category_minor || budget !== undefined || flavor || is_packable;
+  const hasFilter = keyword || category_major || category_minor || cafeteria_id || budget !== undefined || flavor || is_packable;
   if (!hasFilter) {
     const all = dishRepository.findAll();
     return success(res, { data: all, total: all.length });

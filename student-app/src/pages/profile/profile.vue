@@ -33,12 +33,14 @@
       <view v-else class="history-list">
         <view v-for="record in history" :key="record.id" class="soft-card history-row">
           <view>
-            <text class="history-name">{{ record.dish.name }}</text>
+            <text class="history-name">{{ record.dish.dish_name || record.dish.name }}</text>
             <text class="history-time">{{ formatDate(record.eatenAt) }}</text>
           </view>
           <button class="delete-button" @click="removeRecord(record.id)">删除</button>
         </view>
       </view>
+
+      <text class="admin-entry" @click="openAdmin">管理员入口</text>
     </view>
   </view>
 </template>
@@ -60,6 +62,10 @@ onShow(() => {
 
 function editStatus() {
   uni.navigateTo({ url: '/pages/status/status?edit=1' })
+}
+
+function openAdmin() {
+  uni.navigateTo({ url: '/pages/admin-login/admin-login' })
 }
 
 function removeRecord(id) {
@@ -185,5 +191,13 @@ function formatDate(value) {
   color: var(--dark-orange);
   font-size: 23rpx;
   line-height: 58rpx;
+}
+
+.admin-entry {
+  display: block;
+  margin-top: 70rpx;
+  color: #c7aea0;
+  font-size: 22rpx;
+  text-align: center;
 }
 </style>

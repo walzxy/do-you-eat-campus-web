@@ -252,6 +252,17 @@ describe('菜品组合筛选 GET /api/dishes/search - 分类筛选', () => {
   });
 });
 
+describe('菜品组合筛选 GET /api/dishes/search - 食堂筛选', () => {
+  it('按食堂编号返回对应菜品', async () => {
+    const res = await request(app).get('/api/dishes/search?cafeteria_id=C001');
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.data.length).toBeGreaterThan(0);
+    expect(res.body.data.data.every(d => d.cafeteria_id === 'C001')).toBe(true);
+  });
+});
+
 describe('菜品组合筛选 GET /api/dishes/search - 口味和打包筛选', () => {
   it('flavor 筛选"辣"（子串匹配）', async () => {
     const res = await request(app).get('/api/dishes/search?flavor=' + encodeURIComponent('辣'));

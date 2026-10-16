@@ -27,7 +27,7 @@
       </view>
 
       <view class="choice-list">
-        <view class="choice-card soft-card" @click="showComingSoon('转盘')">
+        <view class="choice-card soft-card" @click="openFeature('/pages/wheel/wheel')">
           <text class="choice-emoji">🎡</text>
           <view class="choice-copy">
             <text class="choice-title">转盘</text>
@@ -35,7 +35,7 @@
           </view>
           <text class="choice-arrow">›</text>
         </view>
-        <view class="choice-card soft-card" @click="showComingSoon('选一选')">
+        <view class="choice-card soft-card" @click="openFeature('/pages/choose/choose')">
           <text class="choice-emoji">📝</text>
           <view class="choice-copy">
             <text class="choice-title">选一选</text>
@@ -43,7 +43,7 @@
           </view>
           <text class="choice-arrow">›</text>
         </view>
-        <view class="choice-card soft-card" @click="showComingSoon('盲盒墙')">
+        <view class="choice-card soft-card" @click="openFeature('/pages/waterfall/waterfall')">
           <text class="choice-emoji">🎁</text>
           <view class="choice-copy">
             <text class="choice-title">瀑布盲盒墙</text>
@@ -72,8 +72,8 @@ function editStatus() {
   uni.navigateTo({ url: '/pages/status/status?edit=1' })
 }
 
-function showComingSoon(feature) {
-  uni.showToast({ title: `${feature}正在准备中`, icon: 'none' })
+function openFeature(url) {
+  uni.navigateTo({ url })
 }
 </script>
 
