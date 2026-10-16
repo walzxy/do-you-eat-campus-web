@@ -6,11 +6,19 @@
 - GitHub 仓库
 - GitHub Actions 或手动构建
 
-构建命令：
-  cd frontend
-  npm run build
+学生端 H5 构建命令：
 
-部署到 gh-pages 分支。
+```bash
+cd student-app
+npm ci
+npm run build:h5
+```
+
+构建产物位于 `student-app/dist/build/h5/`。
+
+仓库中的 `.github/workflows/deploy-student-app.yml` 会在 `main` 分支更新学生端后，自动构建并发布到 `gh-pages` 分支。GitHub Pages 的发布源需要设置为 `gh-pages` 分支的根目录 `/`。
+
+旧的 `frontend/` 是历史 Vue/Vite 管理端页面，不再作为学生端临时域名的发布入口。
 
 注意：GitHub Pages 只能托管静态前端文件，
 不能处理 Excel 上传、数据保存或 API 请求。

@@ -6,6 +6,8 @@ const uni = uniModule.default ?? uniModule
 
 export default defineConfig({
   plugins: [uni()],
+  // 同时兼容自定义域名根路径和 GitHub Pages 项目子路径。
+  base: './',
   server: {
     host: '0.0.0.0',
     port: 5174

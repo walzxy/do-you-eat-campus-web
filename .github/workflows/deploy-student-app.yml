@@ -1,0 +1,53 @@
+name: Deploy student H5 app
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'student-app/**'
+      - '.github/workflows/deploy-student-app.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: student-h5-pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: student-app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: student-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build H5
+        run: npm run build:h5
+
+      - name: Add SPA fallback
+        shell: bash
+        run: cp dist/build/h5/index.html dist/build/h5/404.html
+
+      - name: Publish to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: student-app/dist/build/h5
+          # 保留现有 gh-pages 中的 CNAME，避免临时域名因自动发布被移除。
+          keep_files: true
