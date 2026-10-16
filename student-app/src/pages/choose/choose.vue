@@ -6,6 +6,11 @@
       <text class="page-subtitle">把现在在意的条件告诉我，结果会直接来自菜品数据。</text>
 
       <view class="filter-section">
+        <text class="filter-title">想吃什么</text>
+        <input v-model="keyword" class="keyword-input" placeholder="输入菜名或关键词，例如：鸡蛋、面、盖饭" confirm-type="search" @confirm="search" />
+      </view>
+
+      <view class="filter-section">
         <text class="filter-title">预算上限</text>
         <view class="chip-list">
           <text v-for="value in budgets" :key="value" class="filter-chip" :class="{ active: budget === value }" @click="budget = value">{{ value }} 元</text>
@@ -59,6 +64,7 @@ const packableOptions = [
   { value: '否', label: '堂食' }
 ]
 const budget = ref('')
+const keyword = ref('')
 const flavor = ref('')
 const isPackable = ref('')
 const cafeteriaId = ref('')
@@ -88,6 +94,7 @@ async function search() {
   try {
     results.value = await fetchCandidates({
       status: getTodayStatus()?.status || 'normal',
+      keyword: keyword.value.trim(),
       budget: budget.value,
       flavor: flavor.value.trim(),
       isPackable: isPackable.value,
@@ -142,7 +149,8 @@ function openDish(dish) {
 }
 
 .picker-value,
-.flavor-input {
+.flavor-input,
+.keyword-input {
   box-sizing: border-box;
   width: 100%;
   min-height: 78rpx;

@@ -26,7 +26,10 @@
           <text class="admin-dish-meta">{{ dish.price_min }}–{{ dish.price_max }} 元 · {{ dish.cafeteria_name || dish.cafeteria_id }}</text>
           <text class="admin-dish-meta">{{ dish.category_major || '未分类' }} · {{ dish.availability_status || '未标注' }}</text>
         </view>
-        <button class="status-button" @click="toggleDish(dish)">{{ dish.availability_status === '暂时未售卖' ? '恢复' : '下架' }}</button>
+        <view class="dish-actions">
+          <button class="edit-button" @click="openDishEditor(dish)">编辑详情</button>
+          <button class="status-button" @click="toggleDish(dish)">{{ dish.availability_status === '暂时未售卖' ? '恢复' : '下架' }}</button>
+        </view>
       </view>
     </view>
 
@@ -68,18 +71,75 @@
         </view>
       </view>
     </view>
+
+    <view v-if="editorVisible" class="modal-mask" @click="closeDishEditor">
+      <view class="editor-modal" @click.stop>
+        <view class="editor-header">
+          <view>
+            <text class="editor-kicker">编辑菜品信息</text>
+            <text class="editor-title">{{ editingDish?.dish_name || '菜品详情' }}</text>
+          </view>
+          <text class="editor-close" @click="closeDishEditor">×</text>
+        </view>
+
+        <view class="editor-field">
+          <text class="editor-label">关键词</text>
+          <input v-model="editForm.keywords" class="editor-input" placeholder="例如：早餐、盖饭" />
+        </view>
+        <view class="editor-row">
+          <view class="editor-field editor-half">
+            <text class="editor-label">最低价</text>
+            <input v-model="editForm.price_min" class="editor-input" type="digit" />
+          </view>
+          <view class="editor-field editor-half">
+            <text class="editor-label">最高价</text>
+            <input v-model="editForm.price_max" class="editor-input" type="digit" />
+          </view>
+        </view>
+        <view class="editor-field">
+          <text class="editor-label">口味</text>
+          <input v-model="editForm.flavor" class="editor-input" placeholder="例如：清淡、微辣、酸甜" />
+        </view>
+        <view class="editor-field">
+          <text class="editor-label">是否支持打包</text>
+          <picker :range="packableOptions" :value="packableIndex" @change="onPackableChange">
+            <view class="editor-picker">{{ editForm.is_packable || '未知' }} <text>⌄</text></view>
+          </picker>
+        </view>
+        <view class="editor-row">
+          <view class="editor-field editor-half">
+            <text class="editor-label">大类</text>
+            <input v-model="editForm.category_major" class="editor-input" placeholder="例如：主食" />
+          </view>
+          <view class="editor-field editor-half">
+            <text class="editor-label">小类</text>
+            <input v-model="editForm.category_minor" class="editor-input" placeholder="例如：盖饭" />
+          </view>
+        </view>
+        <view class="editor-field">
+          <text class="editor-label">修改原因（可选）</text>
+          <input v-model="editForm.reason" class="editor-input" placeholder="例如：根据今日窗口确认结果修正" />
+        </view>
+        <text v-if="editorError" class="editor-error">{{ editorError }}</text>
+        <view class="editor-actions">
+          <button class="editor-cancel" @click="closeDishEditor">取消</button>
+          <button class="editor-save" :disabled="savingDish" @click="saveDishEdit">{{ savingDish ? '保存中…' : '保存修改' }}</button>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
 <script setup>
 import { onLoad } from '@dcloudio/uni-app'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import {
   adminConfirmImport,
   adminGetChangeLog,
   adminGetVersions,
   adminListDishes,
   adminPreviewImport,
+  adminUpdateDish,
   adminToggleDishStatus,
   adminVerify,
   clearAdminToken,
@@ -106,6 +166,27 @@ const importMessage = ref('')
 const importError = ref('')
 const versionInfo = ref(null)
 const changeLog = ref([])
+const editorVisible = ref(false)
+const editingDish = ref(null)
+const savingDish = ref(false)
+const editorError = ref('')
+const packableOptions = ['未知', '是', '否']
+const editForm = ref(createEmptyEditForm())
+
+function createEmptyEditForm() {
+  return {
+    keywords: '',
+    price_min: '',
+    price_max: '',
+    flavor: '',
+    is_packable: '未知',
+    category_major: '',
+    category_minor: '',
+    reason: ''
+  }
+}
+
+const packableIndex = computed(() => Math.max(0, packableOptions.indexOf(editForm.value.is_packable)))
 
 onLoad(async () => {
   if (!hasAdminToken()) {
@@ -152,6 +233,79 @@ async function toggleDish(dish) {
     dish.availability_status = nextStatus
   } catch (error) {
     uni.showToast({ title: error.message || '操作失败', icon: 'none' })
+  }
+}
+
+function openDishEditor(dish) {
+  editingDish.value = dish
+  editorError.value = ''
+  editForm.value = {
+    keywords: dish.keywords || '',
+    price_min: dish.price_min ?? '',
+    price_max: dish.price_max ?? '',
+    flavor: dish.flavor || '',
+    is_packable: dish.is_packable || '未知',
+    category_major: dish.category_major || '',
+    category_minor: dish.category_minor || '',
+    reason: ''
+  }
+  editorVisible.value = true
+}
+
+function closeDishEditor() {
+  if (savingDish.value) return
+  editorVisible.value = false
+  editingDish.value = null
+  editorError.value = ''
+}
+
+function onPackableChange(event) {
+  editForm.value.is_packable = packableOptions[Number(event.detail.value)] || '未知'
+}
+
+async function saveDishEdit() {
+  if (!editingDish.value) return
+  const priceMin = Number(editForm.value.price_min)
+  const priceMax = Number(editForm.value.price_max)
+  if (Number.isNaN(priceMin) || Number.isNaN(priceMax) || priceMin < 0 || priceMax < 0) {
+    editorError.value = '价格必须是非负数字'
+    return
+  }
+  if (priceMin > priceMax) {
+    editorError.value = '最低价不能高于最高价'
+    return
+  }
+
+  savingDish.value = true
+  editorError.value = ''
+  try {
+    await adminUpdateDish(editingDish.value.dish_id, {
+      keywords: editForm.value.keywords.trim(),
+      price_min: priceMin,
+      price_max: priceMax,
+      flavor: editForm.value.flavor.trim(),
+      is_packable: editForm.value.is_packable,
+      category_major: editForm.value.category_major.trim(),
+      category_minor: editForm.value.category_minor.trim(),
+      reason: editForm.value.reason.trim() || '管理端编辑菜品详情'
+    })
+    Object.assign(editingDish.value, {
+      keywords: editForm.value.keywords.trim(),
+      price_min: priceMin,
+      price_max: priceMax,
+      flavor: editForm.value.flavor.trim(),
+      is_packable: editForm.value.is_packable,
+      category_major: editForm.value.category_major.trim(),
+      category_minor: editForm.value.category_minor.trim()
+    })
+    savingDish.value = false
+    closeDishEditor()
+    uni.showToast({ title: '详情已保存', icon: 'success' })
+    await loadSystem()
+  } catch (error) {
+    editorError.value = error.message || '保存失败，请稍后重试'
+  } finally {
+    savingDish.value = false
   }
 }
 
@@ -312,6 +466,12 @@ function logout() {
   padding: 20rpx;
 }
 
+.dish-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 10rpx;
+}
+
 .admin-dish-copy {
   flex: 1;
   min-width: 0;
@@ -342,6 +502,16 @@ function logout() {
   border: 2rpx solid #f1c7ac;
   background: #fff8ef;
   color: var(--dark-orange);
+}
+
+.edit-button {
+  margin: 0;
+  padding: 12rpx 18rpx;
+  border: 2rpx solid #f2d7be;
+  border-radius: 26rpx;
+  background: #fff;
+  color: var(--text);
+  font-size: 22rpx;
 }
 
 .admin-empty,
@@ -429,5 +599,134 @@ function logout() {
 .change-row text + text {
   margin-top: 6rpx;
   color: #b49a89;
+}
+
+.modal-mask {
+  position: fixed;
+  z-index: 20;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(49, 32, 22, 0.38);
+}
+
+.editor-modal {
+  width: 100%;
+  box-sizing: border-box;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 30rpx 28rpx calc(34rpx + env(safe-area-inset-bottom));
+  border-radius: 34rpx 34rpx 0 0;
+  background: #fffaf5;
+}
+
+.editor-header,
+.editor-actions,
+.editor-row {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+}
+
+.editor-header,
+.editor-actions {
+  justify-content: space-between;
+}
+
+.editor-kicker,
+.editor-title,
+.editor-label {
+  display: block;
+}
+
+.editor-kicker {
+  color: var(--main);
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.editor-title {
+  margin-top: 6rpx;
+  color: var(--text);
+  font-size: 34rpx;
+  font-weight: 800;
+}
+
+.editor-close {
+  padding: 0 10rpx;
+  color: var(--muted);
+  font-size: 46rpx;
+  line-height: 1;
+}
+
+.editor-field {
+  flex: 1;
+  min-width: 0;
+  margin-top: 22rpx;
+}
+
+.editor-label {
+  margin-bottom: 9rpx;
+  color: var(--text);
+  font-size: 23rpx;
+  font-weight: 700;
+}
+
+.editor-input,
+.editor-picker {
+  width: 100%;
+  height: 72rpx;
+  box-sizing: border-box;
+  padding: 0 18rpx;
+  border: 2rpx solid var(--border);
+  border-radius: 18rpx;
+  background: #fff;
+  color: var(--text);
+  font-size: 23rpx;
+  line-height: 72rpx;
+}
+
+.editor-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.editor-half {
+  width: 50%;
+}
+
+.editor-error {
+  display: block;
+  margin-top: 18rpx;
+  color: #b84f31;
+  font-size: 22rpx;
+}
+
+.editor-actions {
+  margin-top: 28rpx;
+}
+
+.editor-cancel,
+.editor-save {
+  flex: 1;
+  margin: 0;
+  border-radius: 22rpx;
+  font-size: 24rpx;
+}
+
+.editor-cancel {
+  border: 2rpx solid var(--border);
+  background: #fff;
+  color: var(--muted);
+}
+
+.editor-save {
+  border: 2rpx solid var(--dark-orange);
+  background: var(--dark-orange);
+  color: #fff;
 }
 </style>

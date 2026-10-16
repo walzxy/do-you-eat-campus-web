@@ -111,6 +111,13 @@ export async function adminListDishes(keyword = '') {
   return response.data?.data || []
 }
 
+export async function adminUpdateDish(dishId, data) {
+  return request(`/admin/dishes/${encodeURIComponent(dishId)}`, {
+    method: 'PUT',
+    data
+  })
+}
+
 export async function adminToggleDishStatus(dishId, status, reason = '') {
   return request(`/admin/dishes/${encodeURIComponent(dishId)}/status`, {
     method: 'PATCH',
