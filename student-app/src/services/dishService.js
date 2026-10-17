@@ -2,10 +2,10 @@ import { searchDishes } from './api'
 
 const STATUS_PREFERENCES = {
   normal: { prefer: [], avoid: [] },
-  sick: { prefer: ['汤', '粥', '面', '蒸'], avoid: ['辣', '麻辣', '炸', '烧烤'] },
-  heat: { prefer: ['汤', '粥', '蔬菜', '清'], avoid: ['辣', '麻辣', '炸'] },
-  stomach: { prefer: ['汤', '粥', '面', '蒸'], avoid: ['辣', '麻辣', '炸', '冰'] },
-  period: { prefer: ['汤', '粥', '面', '热'], avoid: [] }
+  sick: { prefer: ['汤', '粥', '面', '蒸'], avoid: ['辣', '麻辣', '香辣', '炸', '烧烤'] },
+  heat: { prefer: ['汤', '粥', '蔬菜', '清'], avoid: ['辣', '麻辣', '香辣', '炸', '烧烤'] },
+  stomach: { prefer: ['汤', '粥', '面', '蒸'], avoid: ['辣', '麻辣', '香辣', '炸', '烧烤', '冰'] },
+  period: { prefer: ['汤', '粥', '面', '热'], avoid: ['冰', '冰凉'] }
 }
 
 export function dishTitle(dish) {
@@ -37,9 +37,17 @@ function searchableText(dish) {
 
 export function rankDishes(dishes, { status = 'normal', cafeteriaId = '' } = {}) {
   const preferences = STATUS_PREFERENCES[status] || STATUS_PREFERENCES.normal
-  return dishes
+  const visibleDishes = dishes
     .filter((dish) => dish.availability_status !== '暂时未售卖')
     .filter((dish) => !cafeteriaId || dish.cafeteria_id === cafeteriaId)
+  const compatibleDishes = visibleDishes.filter((dish) => {
+    const text = searchableText(dish)
+    return !preferences.avoid.some((word) => text.includes(word))
+  })
+  // 已知冲突菜品优先排除；如果数据过少，则退回完整可售池，避免出现空白结果。
+  const sourceDishes = compatibleDishes.length ? compatibleDishes : visibleDishes
+
+  return sourceDishes
     .map((dish) => {
       const text = searchableText(dish)
       const preferScore = preferences.prefer.reduce((score, word) => score + (text.includes(word) ? 2 : 0), 0)
@@ -55,9 +63,12 @@ export async function fetchCandidates(filters = {}) {
   return rankDishes(dishes, filters)
 }
 
-export function pickRandom(dishes) {
-  if (!dishes.length) return null
-  return dishes[Math.floor(Math.random() * dishes.length)]
+export function pickRandom(dishes, excludedIds = []) {
+  const excluded = new Set(excludedIds)
+  const available = dishes.filter((dish) => !excluded.has(dish.dish_id))
+  const source = available.length ? available : dishes
+  if (!source.length) return null
+  return source[Math.floor(Math.random() * source.length)]
 }
 
 export function getCategories(dishes) {

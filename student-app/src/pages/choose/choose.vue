@@ -12,9 +12,13 @@
 
       <view class="filter-section">
         <text class="filter-title">预算上限</text>
-        <view class="chip-list">
-          <text v-for="value in budgets" :key="value" class="filter-chip" :class="{ active: budget === value }" @click="budget = value">{{ value }} 元</text>
+        <view class="budget-control">
+          <button class="budget-step" :disabled="!budget || Number(budget) <= 0" @click="decreaseBudget">−</button>
+          <input v-model="budget" class="budget-input" type="number" min="0" step="1" placeholder="不限" confirm-type="search" @input="normalizeBudget" @confirm="search" />
+          <text class="budget-unit">元</text>
+          <button class="budget-step" @click="increaseBudget">＋</button>
         </view>
+        <text class="filter-hint">将比较菜品的最高价格</text>
       </view>
 
       <view class="filter-section">
@@ -25,15 +29,11 @@
       </view>
 
       <view class="filter-section">
-        <text class="filter-title">吃饭方式</text>
+        <text class="filter-title">口味</text>
         <view class="chip-list">
-          <text v-for="option in packableOptions" :key="option.value" class="filter-chip" :class="{ active: isPackable === option.value }" @click="isPackable = option.value">{{ option.label }}</text>
+          <text class="filter-chip" :class="{ active: !flavor }" @click="flavor = ''">不限</text>
+          <text v-for="option in flavorOptions" :key="option" class="filter-chip" :class="{ active: flavor === option }" @click="flavor = option">{{ option }}</text>
         </view>
-      </view>
-
-      <view class="filter-section">
-        <text class="filter-title">口味关键词</text>
-        <input v-model="flavor" class="flavor-input" placeholder="例如：清淡、辣、甜" confirm-type="search" @confirm="search" />
       </view>
 
       <button class="primary-button search-button" :disabled="loading" @click="search">{{ loading ? '查找中…' : '开始筛选' }}</button>
@@ -46,6 +46,14 @@
       <view v-if="!loading && !error && searched && !results.length" class="empty-card soft-card">没有匹配到菜品，可以放宽一个条件再试试。</view>
       <DishCard v-if="!loading && !error && searched && results.length" v-for="dish in results" :key="dish.dish_id" :dish="dish" @open="openDish" />
     </view>
+    <DishDetailModal
+      :dish="selectedDish"
+      :visible="detailVisible"
+      secondary-label="关闭"
+      @close="closeDish"
+      @secondary="closeDish"
+      @confirm="confirmDish"
+    />
   </view>
 </template>
 
@@ -53,23 +61,20 @@
 import { onLoad } from '@dcloudio/uni-app'
 import { computed, ref } from 'vue'
 import DishCard from '../../components/DishCard.vue'
+import DishDetailModal from '../../components/DishDetailModal.vue'
 import { getCafeterias } from '../../services/api'
 import { fetchCandidates } from '../../services/dishService'
-import { getTodayStatus } from '../../services/localState'
+import { addHistoryRecord, getTodayStatus } from '../../services/localState'
 
-const budgets = [6, 8, 10, 12, 14, 16, 20]
-const packableOptions = [
-  { value: '', label: '均可' },
-  { value: '是', label: '打包' },
-  { value: '否', label: '堂食' }
-]
+const flavorOptions = ['清淡', '原味', '微辣', '香辣', '麻辣']
 const budget = ref('')
 const keyword = ref('')
 const flavor = ref('')
-const isPackable = ref('')
 const cafeteriaId = ref('')
 const cafeterias = ref([])
 const results = ref([])
+const selectedDish = ref(null)
+const detailVisible = ref(false)
 const loading = ref(false)
 const searched = ref(false)
 const error = ref('')
@@ -97,7 +102,6 @@ async function search() {
       keyword: keyword.value.trim(),
       budget: budget.value,
       flavor: flavor.value.trim(),
-      isPackable: isPackable.value,
       cafeteriaId: cafeteriaId.value
     })
   } catch (requestError) {
@@ -109,7 +113,35 @@ async function search() {
 }
 
 function openDish(dish) {
-  uni.navigateTo({ url: `/pages/dish-detail/dish-detail?dishId=${encodeURIComponent(dish.dish_id)}` })
+  selectedDish.value = dish
+  detailVisible.value = true
+}
+
+function closeDish() {
+  detailVisible.value = false
+  selectedDish.value = null
+}
+
+function confirmDish() {
+  if (!selectedDish.value) return
+  addHistoryRecord(selectedDish.value)
+  closeDish()
+  uni.showToast({ title: '已记入饭录', icon: 'success' })
+}
+
+function increaseBudget() {
+  budget.value = String(Math.max(0, Math.floor(Number(budget.value) || 0) + 1))
+}
+
+function decreaseBudget() {
+  const next = Math.max(0, Math.floor(Number(budget.value) || 0) - 1)
+  budget.value = next ? String(next) : ''
+}
+
+function normalizeBudget() {
+  if (budget.value === '') return
+  const value = Number(budget.value)
+  budget.value = Number.isFinite(value) ? String(Math.max(0, Math.floor(value))) : ''
 }
 </script>
 
@@ -149,8 +181,8 @@ function openDish(dish) {
 }
 
 .picker-value,
-.flavor-input,
-.keyword-input {
+.keyword-input,
+.budget-control {
   box-sizing: border-box;
   width: 100%;
   min-height: 78rpx;
@@ -161,6 +193,54 @@ function openDish(dish) {
   background: rgba(255, 255, 255, 0.72);
   color: var(--muted);
   font-size: 25rpx;
+}
+
+.budget-control {
+  display: flex;
+  align-items: center;
+  padding: 8rpx 10rpx;
+}
+
+.budget-step {
+  width: 62rpx;
+  height: 58rpx;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 18rpx;
+  background: var(--light-orange);
+  color: var(--dark-orange);
+  font-size: 34rpx;
+  line-height: 58rpx;
+}
+
+.budget-step[disabled] {
+  opacity: 0.45;
+}
+
+.budget-input {
+  flex: 1;
+  min-height: 58rpx;
+  margin: 0 8rpx;
+  padding: 0 8rpx;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 26rpx;
+  text-align: center;
+}
+
+.budget-unit {
+  margin-right: 10rpx;
+  color: var(--muted);
+  font-size: 24rpx;
+}
+
+.filter-hint {
+  display: block;
+  margin-top: 8rpx;
+  color: #b49a89;
+  font-size: 21rpx;
 }
 
 .picker-value {

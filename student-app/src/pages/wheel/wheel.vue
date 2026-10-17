@@ -3,7 +3,7 @@
     <view class="content-width">
       <text class="eyebrow">随机一点</text>
       <text class="page-title">今天交给转盘</text>
-      <text class="page-subtitle">候选菜品来自当前数据，会避开已下架项目，并按今日状态做轻量排序。</text>
+      <text class="page-subtitle">先根据今日状态缩小候选范围，再把这一顿交给一点运气。</text>
 
       <view class="wheel-board soft-card">
         <view class="wheel-ring" :class="{ 'wheel-ring--spinning': spinning }">
@@ -19,28 +19,29 @@
       </button>
       <button class="muted-button" @click="reload">重新读取候选</button>
 
-      <view v-if="result" class="result-card soft-card">
-        <text class="result-kicker">这次抽到</text>
-        <text class="result-title">{{ result.title }}</text>
-        <text class="result-meta">{{ result.priceText }} · {{ result.locationText }}</text>
-        <view class="result-actions">
-          <button class="muted-button action-button" @click="spin">换一个</button>
-          <button class="primary-button action-button" @click="confirmResult">就这个</button>
-        </view>
-      </view>
     </view>
+    <DishDetailModal
+      :dish="result"
+      :visible="detailVisible"
+      secondary-label="换一个"
+      @close="closeResult"
+      @secondary="spinAgain"
+      @confirm="confirmResult"
+    />
   </view>
 </template>
 
 <script setup>
 import { onLoad } from '@dcloudio/uni-app'
 import { ref } from 'vue'
+import DishDetailModal from '../../components/DishDetailModal.vue'
 import { addHistoryRecord, getTodayStatus } from '../../services/localState'
 import { fetchCandidates, pickRandom } from '../../services/dishService'
 
 const candidates = ref([])
 const displayDish = ref(null)
 const result = ref(null)
+const detailVisible = ref(false)
 const loading = ref(false)
 const spinning = ref(false)
 const error = ref('')
@@ -65,6 +66,7 @@ async function reload() {
 
 function spin() {
   if (spinning.value || !candidates.value.length) return
+  const previousResultId = result.value?.dish_id
   spinning.value = true
   result.value = null
   let rounds = 0
@@ -73,9 +75,10 @@ function spin() {
     rounds += 1
     if (rounds >= 10) {
       clearInterval(timer)
-      result.value = pickRandom(candidates.value)
+      result.value = pickRandom(candidates.value, previousResultId ? [previousResultId] : [])
       displayDish.value = result.value
       spinning.value = false
+      detailVisible.value = true
     }
   }, 90)
 }
@@ -83,8 +86,17 @@ function spin() {
 function confirmResult() {
   if (!result.value) return
   addHistoryRecord(result.value)
+  detailVisible.value = false
   uni.showToast({ title: '已记入饭录', icon: 'success' })
-  result.value = null
+}
+
+function closeResult() {
+  detailVisible.value = false
+}
+
+function spinAgain() {
+  detailVisible.value = false
+  spin()
 }
 </script>
 
@@ -158,50 +170,6 @@ function confirmResult() {
   color: #b84f31;
   font-size: 24rpx;
   line-height: 1.5;
-}
-
-.result-card {
-  margin-top: 32rpx;
-  padding: 30rpx 24rpx;
-  text-align: center;
-}
-
-.result-kicker,
-.result-title,
-.result-meta {
-  display: block;
-}
-
-.result-kicker {
-  color: var(--muted);
-  font-size: 23rpx;
-}
-
-.result-title {
-  margin-top: 10rpx;
-  color: var(--text);
-  font-size: 36rpx;
-  font-weight: 800;
-}
-
-.result-meta {
-  margin-top: 10rpx;
-  color: var(--muted);
-  font-size: 23rpx;
-}
-
-.result-actions {
-  display: flex;
-  gap: 14rpx;
-  margin-top: 24rpx;
-}
-
-.action-button {
-  flex: 1;
-  width: auto;
-  margin-top: 0;
-  padding: 0;
-  font-size: 27rpx;
 }
 
 @keyframes spin-ring {

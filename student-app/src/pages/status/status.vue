@@ -65,6 +65,8 @@ function confirmStatus() {
 <style scoped>
 .status-page {
   position: relative;
+  display: flex;
+  align-items: center;
   box-sizing: border-box;
   min-height: 100vh;
   overflow: hidden;
@@ -77,9 +79,9 @@ function confirmStatus() {
   box-sizing: border-box;
   width: 100%;
   max-width: 750rpx;
-  min-height: 100vh;
+  min-height: auto;
   margin: 0 auto;
-  padding: 74rpx 34rpx calc(46rpx + env(safe-area-inset-bottom));
+  padding: 54rpx 34rpx calc(46rpx + env(safe-area-inset-bottom));
 }
 
 .brand-block {
@@ -93,7 +95,7 @@ function confirmStatus() {
 
 .brand-name {
   color: var(--text);
-  font-size: 44rpx;
+  font-size: 50rpx;
   font-weight: 800;
   letter-spacing: 2rpx;
 }
@@ -101,7 +103,7 @@ function confirmStatus() {
 .brand-slogan {
   margin-top: 10rpx;
   color: var(--muted);
-  font-size: 26rpx;
+  font-size: 23rpx;
 }
 
 .status-heading {
@@ -116,14 +118,14 @@ function confirmStatus() {
 
 .heading-title {
   color: var(--text);
-  font-size: 38rpx;
+  font-size: 42rpx;
   font-weight: 800;
 }
 
 .heading-description {
   margin: 12rpx auto 0;
   color: var(--muted);
-  font-size: 25rpx;
+  font-size: 23rpx;
   line-height: 1.55;
 }
 

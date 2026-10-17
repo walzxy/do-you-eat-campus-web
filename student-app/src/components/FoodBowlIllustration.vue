@@ -6,8 +6,8 @@
 
 <style scoped>
 .illustration-wrap {
-  width: 360rpx;
-  height: 270rpx;
+  width: 420rpx;
+  height: 310rpx;
   margin: 0 auto;
 }
 

@@ -13,11 +13,11 @@
         </view>
       </view>
 
-      <view class="quick-card soft-card">
+      <view class="quick-card">
         <view class="quick-icon">🍚</view>
         <view class="quick-copy">
           <text class="quick-title">从一顿合适的饭开始</text>
-          <text class="quick-description">先选你的方式，后面会结合口味和食堂帮你缩小范围。</text>
+        <text class="quick-description">从下面选一种方式开始。</text>
         </view>
       </view>
 
@@ -111,6 +111,9 @@ function openFeature(url) {
   align-items: center;
   margin-top: 44rpx;
   padding: 26rpx;
+  border: 2rpx dashed rgba(242, 215, 190, 0.9);
+  border-radius: 30rpx;
+  background: rgba(255, 255, 255, 0.46);
 }
 
 .quick-icon {
@@ -138,19 +141,19 @@ function openFeature(url) {
 
 .quick-title {
   color: var(--text);
-  font-size: 29rpx;
+  font-size: 27rpx;
   font-weight: 800;
 }
 
 .quick-description {
   margin-top: 8rpx;
   color: var(--muted);
-  font-size: 23rpx;
+  font-size: 21rpx;
   line-height: 1.55;
 }
 
 .section-heading {
-  margin-top: 54rpx;
+  margin-top: 42rpx;
 }
 
 .choice-list {
@@ -161,18 +164,18 @@ function openFeature(url) {
   display: flex;
   align-items: center;
   margin-bottom: 18rpx;
-  padding: 26rpx 24rpx;
+  padding: 30rpx 26rpx;
 }
 
 .choice-emoji {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 84rpx;
-  height: 84rpx;
+  width: 100rpx;
+  height: 100rpx;
   border-radius: 28rpx;
   background: #fff0df;
-  font-size: 42rpx;
+  font-size: 50rpx;
 }
 
 .choice-copy {
@@ -182,14 +185,14 @@ function openFeature(url) {
 
 .choice-title {
   color: var(--text);
-  font-size: 30rpx;
+  font-size: 33rpx;
   font-weight: 800;
 }
 
 .choice-description {
   margin-top: 8rpx;
   color: var(--muted);
-  font-size: 23rpx;
+  font-size: 21rpx;
 }
 
 .choice-arrow {

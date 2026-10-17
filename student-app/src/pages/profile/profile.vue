@@ -1,9 +1,9 @@
 <template>
   <view class="page-shell">
     <view class="content-width">
-      <text class="eyebrow">我的</text>
-      <text class="page-title">把喜欢的口味记下来</text>
-      <text class="page-subtitle">当前使用匿名账号，不收集额外个人资料。</text>
+      <text class="page-title">我的</text>
+      <text class="page-subtitle profile-subtitle">把喜欢的口味记下来</text>
+      <text class="profile-note">当前使用匿名账号，不收集额外个人资料。</text>
 
       <view class="profile-card soft-card">
         <view class="avatar">🍊</view>
@@ -89,6 +89,17 @@ function formatDate(value) {
   align-items: center;
   margin-top: 44rpx;
   padding: 28rpx;
+}
+
+.profile-subtitle {
+  margin-top: 10rpx;
+}
+
+.profile-note {
+  display: block;
+  margin-top: 6rpx;
+  color: #b49a89;
+  font-size: 21rpx;
 }
 
 .avatar {
