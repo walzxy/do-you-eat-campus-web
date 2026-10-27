@@ -10,6 +10,9 @@ const windowController = require('./controllers/windowController');
 const errorHandler = require('./middleware/errorHandler');
 const requestLogger = require('./middleware/requestLogger');
 const adminRoutes = require('./routes/admin');
+const accountRoutes = require('./routes/account');
+const communityRoutes = require('./routes/community');
+const notificationRoutes = require('./routes/notifications');
 
 const app = express();
 
@@ -24,6 +27,9 @@ app.use('/api/dishes', dishesRoute);
 
 // 反馈提交接口
 app.use('/api/feedback', feedbackRoute);
+app.use('/api/account', accountRoutes);
+app.use('/api/community', communityRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // 食堂下的窗口列表（在 cafeterias 路由之外单独注册，保持路由隔离）
 app.get('/api/cafeterias/:cafeteriaId/windows', windowController.listWindowsByCafeteria);

@@ -31,6 +31,13 @@ export function getAnonymousIdentity() {
   return { id, kind: 'anonymous', synced: false }
 }
 
+export function resetAnonymousIdentity() {
+  uni.removeStorageSync(ANONYMOUS_ID_KEY)
+  uni.removeStorageSync(DAILY_STATUS_KEY)
+  uni.removeStorageSync(HISTORY_KEY)
+  return getAnonymousIdentity()
+}
+
 export function getTodayStatus() {
   const saved = uni.getStorageSync(DAILY_STATUS_KEY)
   const today = getLocalDateKey()

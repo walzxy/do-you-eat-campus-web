@@ -161,6 +161,62 @@
 }
 ```
 
+## 匿名账号、饭录与社区接口
+
+除建立匿名会话外，以下接口均通过请求头 `X-Anonymous-Id` 识别当前匿名账号。前端会在本地生成形如 `anon_xxx` 的匿名 ID；当前不采集生日、性别、姓名、学号、手机号等额外个人资料。
+
+### POST /api/account/session
+
+建立或恢复匿名账号会话。后续可在账号表中通过 `provider`、`provider_subject` 预留微信登录绑定，不改变现有内容归属模型。
+
+### GET/PATCH /api/account/me
+
+读取或修改匿名昵称、头像等账号信息。
+
+### GET/POST/DELETE /api/account/history
+
+读取、添加、删除当前账号的饭录。添加支持 `client_id` 幂等，便于把当前网页本地饭录同步到后端；删除只影响饭录，不影响社区内容。
+
+### PUT /api/account/taste
+
+保存统一格式的口味偏好和避开口味。当前固定口味标签为：清淡、原味、微辣、香辣、麻辣。
+
+### DELETE /api/account
+
+注销匿名账号。账号、口味、饭录、收藏、评分和通知等个人数据删除；已发布帖子和评论保留，并脱敏显示为“已注销用户”。
+
+### GET /api/community/posts
+
+按发布时间倒序返回社区帖子。支持 `page`、`pageSize` 和 `keyword`；关键词匹配帖子文字及附带菜品名称。
+
+### POST/DELETE /api/community/posts
+
+发布或删除自己的文字帖子，可选携带 `dish_id`，服务端保存菜品快照，避免菜品资料后续变更导致历史帖子失真。
+
+### POST /api/community/posts/:postId/like
+
+切换点赞。将生成帖子作者的通知。
+
+### POST /api/community/posts/:postId/favorite
+
+切换收藏。将生成帖子作者的通知。
+
+### GET/POST /api/community/posts/:postId/comments
+
+读取或发布评论。评论通过 `parent_id` 支持多层回复；当前前端按层级缩进展示。
+
+### POST /api/community/dishes/:dishId/rating
+
+提交 1–5 的整数评分。同一匿名账号对同一菜品重复评分会更新原评分。
+
+### GET /api/community/rankings
+
+返回菜品评分榜，按平均分、评分人数排序。
+
+### GET/PATCH /api/notifications
+
+读取当前账号的点赞、收藏、评论、回复通知，并将单条通知标记为已读。
+
 **请求示例：**
 ```json
 {

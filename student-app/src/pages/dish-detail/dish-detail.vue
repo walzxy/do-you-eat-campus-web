@@ -18,8 +18,16 @@
           <view class="info-row"><text>状态</text><text>{{ dish.availability_status || '待核实' }}</text></view>
         </view>
 
+        <view class="rating-card soft-card">
+          <text class="rating-title">给这道菜打个分</text>
+          <view class="rating-stars">
+            <text v-for="value in 5" :key="value" :class="['rating-star', { active: value <= rating } ]" @click="rating = value">★</text>
+          </view>
+          <button class="small-action" :disabled="!rating || ratingSaving" @click="saveRating">{{ ratingSaving ? '保存中…' : '保存评分' }}</button>
+        </view>
         <button class="primary-button" :disabled="recorded" @click="recordDish">{{ recorded ? '已记入饭录' : '就这个，记入饭录' }}</button>
-        <text class="detail-note">记录只代表你选择了这道菜，不会自动发布到社区。</text>
+        <button class="share-button" @click="shareToCommunity">分享到社区</button>
+        <text class="detail-note">饭录和社区分享可以分别操作，匿名账号不会展示个人资料。</text>
       </template>
     </view>
   </view>
@@ -28,7 +36,7 @@
 <script setup>
 import { onLoad } from '@dcloudio/uni-app'
 import { ref } from 'vue'
-import { getDish } from '../../services/api'
+import { createCommunityPost, getDish, rateDish, syncHistoryRecord } from '../../services/api'
 import { addHistoryRecord } from '../../services/localState'
 import { normalizeDish } from '../../services/dishService'
 
@@ -36,6 +44,8 @@ const dish = ref(null)
 const loading = ref(false)
 const error = ref('')
 const recorded = ref(false)
+const rating = ref(0)
+const ratingSaving = ref(false)
 
 onLoad(async ({ dishId } = {}) => {
   if (!dishId) {
@@ -54,9 +64,33 @@ onLoad(async ({ dishId } = {}) => {
 
 function recordDish() {
   if (!dish.value || recorded.value) return
-  addHistoryRecord(dish.value)
+  const record = addHistoryRecord(dish.value)
+  syncHistoryRecord(record).catch(() => {})
   recorded.value = true
   uni.showToast({ title: '已记入饭录', icon: 'success' })
+}
+
+async function saveRating() {
+  if (!dish.value || !rating.value) return
+  ratingSaving.value = true
+  try {
+    await rateDish(dish.value.dish_id, rating.value)
+    uni.showToast({ title: '评分已保存', icon: 'success' })
+  } catch (requestError) {
+    uni.showToast({ title: requestError.message || '评分失败', icon: 'none' })
+  } finally {
+    ratingSaving.value = false
+  }
+}
+
+async function shareToCommunity() {
+  if (!dish.value) return
+  try {
+    await createCommunityPost({ content: `我今天吃了「${dish.value.title}」，你呢？`, dish_id: dish.value.dish_id })
+    uni.showToast({ title: '已分享到社区', icon: 'success' })
+  } catch (requestError) {
+    uni.showToast({ title: requestError.message || '分享失败', icon: 'none' })
+  }
 }
 </script>
 
@@ -135,6 +169,57 @@ function recordDish() {
 .primary-button {
   width: 100%;
   margin-top: 28rpx;
+}
+
+.rating-card {
+  margin-top: 22rpx;
+  padding: 22rpx;
+  text-align: center;
+}
+
+.rating-title {
+  display: block;
+  color: var(--text);
+  font-size: 24rpx;
+  font-weight: 750;
+}
+
+.rating-stars {
+  display: flex;
+  justify-content: center;
+  gap: 10rpx;
+  margin-top: 10rpx;
+}
+
+.rating-star {
+  color: #e5cdbd;
+  font-size: 42rpx;
+}
+
+.rating-star.active {
+  color: var(--main);
+}
+
+.small-action,
+.share-button {
+  height: 64rpx;
+  margin: 16rpx auto 0;
+  border-radius: 32rpx;
+  font-size: 22rpx;
+  line-height: 60rpx;
+}
+
+.small-action {
+  padding: 0 24rpx;
+  background: var(--light-orange);
+  color: var(--dark-orange);
+}
+
+.share-button {
+  width: 100%;
+  border: 2rpx solid var(--border);
+  background: #fff;
+  color: var(--dark-orange);
 }
 
 .detail-note {

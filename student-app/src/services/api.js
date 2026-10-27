@@ -1,3 +1,5 @@
+import { getAnonymousIdentity } from './localState'
+
 const PUBLIC_API_BASE = 'https://doyeat-d0golk77lb63ff44e-1462172342.ap-shanghai.app.tcloudbase.com/api'
 const ADMIN_TOKEN_KEY = 'today-eat:admin-token'
 
@@ -35,6 +37,7 @@ export function request(path, options = {}) {
       data,
       header: {
         'Content-Type': 'application/json',
+        'X-Anonymous-Id': getAnonymousIdentity().id,
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...headers
       },
@@ -91,6 +94,113 @@ export async function getCafeterias() {
 export async function getWindows(cafeteriaId) {
   const response = await request(`/cafeterias/${encodeURIComponent(cafeteriaId)}/windows`)
   return response.data?.data || []
+}
+
+export async function ensureAccountSession() {
+  const identity = getAnonymousIdentity()
+  const response = await request('/account/session', {
+    method: 'POST',
+    data: { anonymous_id: identity.id }
+  })
+  return response.data
+}
+
+export async function getAccount() {
+  const response = await request('/account/me')
+  return response.data
+}
+
+export async function updateAccount(data) {
+  const response = await request('/account/me', { method: 'PATCH', data })
+  return response.data
+}
+
+export async function updateTaste(data) {
+  const response = await request('/account/taste', { method: 'PUT', data })
+  return response.data
+}
+
+export async function getAccountHistory(page = 1, pageSize = 30) {
+  const response = await request(`/account/history${queryString({ page, pageSize })}`)
+  return response.data
+}
+
+export async function syncHistoryRecord(record) {
+  const response = await request('/account/history', {
+    method: 'POST',
+    data: {
+      client_id: record.id,
+      dish_id: record.dish?.dish_id || null,
+      source: record.source || 'local',
+      eaten_at: record.eatenAt
+    }
+  })
+  return response.data
+}
+
+export async function deleteAccountHistory(historyId) {
+  return request(`/account/history/${encodeURIComponent(historyId)}`, { method: 'DELETE' })
+}
+
+export async function deleteAccount() {
+  return request('/account', { method: 'DELETE' })
+}
+
+export async function listCommunityPosts(page = 1, pageSize = 20, keyword = '') {
+  const response = await request(`/community/posts${queryString({ page, pageSize, keyword: keyword || undefined })}`)
+  return response.data
+}
+
+export async function createCommunityPost(data) {
+  const response = await request('/community/posts', { method: 'POST', data })
+  return response.data
+}
+
+export async function deleteCommunityPost(postId) {
+  return request(`/community/posts/${encodeURIComponent(postId)}`, { method: 'DELETE' })
+}
+
+export async function togglePostReaction(postId, kind) {
+  const response = await request(`/community/posts/${encodeURIComponent(postId)}/${kind}`, { method: 'POST' })
+  return response.data
+}
+
+export async function getCommunityPost(postId) {
+  const response = await request(`/community/posts/${encodeURIComponent(postId)}`)
+  return response.data
+}
+
+export async function listPostComments(postId) {
+  const response = await request(`/community/posts/${encodeURIComponent(postId)}/comments`)
+  return response.data || []
+}
+
+export async function createPostComment(postId, data) {
+  const response = await request(`/community/posts/${encodeURIComponent(postId)}/comments`, { method: 'POST', data })
+  return response.data
+}
+
+export async function deletePostComment(commentId) {
+  return request(`/community/comments/${encodeURIComponent(commentId)}`, { method: 'DELETE' })
+}
+
+export async function rateDish(dishId, rating) {
+  const response = await request(`/community/dishes/${encodeURIComponent(dishId)}/rating`, { method: 'POST', data: { rating } })
+  return response.data
+}
+
+export async function getDishRankings() {
+  const response = await request('/community/rankings')
+  return response.data?.data || []
+}
+
+export async function listNotifications(page = 1, pageSize = 30) {
+  const response = await request(`/notifications${queryString({ page, pageSize })}`)
+  return response.data
+}
+
+export async function markNotificationRead(notificationId) {
+  return request(`/notifications/${encodeURIComponent(notificationId)}/read`, { method: 'PATCH' })
 }
 
 export async function adminLogin(password) {

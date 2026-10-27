@@ -47,6 +47,7 @@ process.env.DATA_SOURCE = DATA_DIR;
 process.env.NODE_ENV = 'production';
 // 云函数环境使用云数据库存储反馈
 process.env.FEEDBACK_STORAGE = 'cloudbase';
+process.env.SOCIAL_STORAGE = 'cloudbase';
 
 const app = require('../backend/src/app');
 
