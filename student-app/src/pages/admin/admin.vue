@@ -17,10 +17,22 @@
         <input v-model="keyword" class="admin-search" placeholder="检索菜品名称或关键词" confirm-type="search" @confirm="loadDishes" />
         <button class="small-button" @click="loadDishes">检索</button>
       </view>
+      <scroll-view class="cafeteria-filter" scroll-x="true" :show-scrollbar="false">
+        <view class="cafeteria-filter-inner">
+          <text class="cafeteria-chip" :class="{ active: !selectedCafeteriaId }" @click="selectCafeteria('')">全部食堂</text>
+          <text
+            v-for="cafeteria in cafeterias"
+            :key="cafeteria.cafeteria_id"
+            class="cafeteria-chip"
+            :class="{ active: selectedCafeteriaId === cafeteria.cafeteria_id }"
+            @click="selectCafeteria(cafeteria.cafeteria_id)"
+          >{{ cafeteria.cafeteria_name }}</text>
+        </view>
+      </scroll-view>
       <text v-if="dishError" class="admin-error">{{ dishError }}</text>
       <text v-if="loadingDishes" class="admin-empty">读取中…</text>
-      <text v-else-if="!dishes.length" class="admin-empty">暂无匹配菜品</text>
-      <view v-for="dish in dishes" :key="dish.dish_id" class="admin-dish soft-card">
+      <text v-else-if="!filteredDishes.length" class="admin-empty">暂无匹配菜品</text>
+      <view v-for="dish in filteredDishes" :key="dish.dish_id" class="admin-dish soft-card">
         <view class="admin-dish-copy">
           <text class="admin-dish-name">{{ dish.dish_name }}</text>
           <text class="admin-dish-meta">{{ dish.price_min }}–{{ dish.price_max }} 元 · {{ dish.cafeteria_name || dish.cafeteria_id }}</text>
@@ -136,6 +148,7 @@ import { computed, ref } from 'vue'
 import {
   adminConfirmImport,
   adminGetChangeLog,
+  getCafeterias,
   adminGetVersions,
   adminListDishes,
   adminPreviewImport,
@@ -154,6 +167,8 @@ const tabs = [
 const tab = ref('dishes')
 const keyword = ref('')
 const dishes = ref([])
+const cafeterias = ref([])
+const selectedCafeteriaId = ref('')
 const loadingDishes = ref(false)
 const dishError = ref('')
 const selectedFile = ref(null)
@@ -172,6 +187,11 @@ const savingDish = ref(false)
 const editorError = ref('')
 const packableOptions = ['未知', '是', '否']
 const editForm = ref(createEmptyEditForm())
+
+const filteredDishes = computed(() => {
+  if (!selectedCafeteriaId.value) return dishes.value
+  return dishes.value.filter(dish => dish.cafeteria_id === selectedCafeteriaId.value)
+})
 
 function createEmptyEditForm() {
   return {
@@ -195,7 +215,7 @@ onLoad(async () => {
   }
   try {
     await adminVerify()
-    await Promise.all([loadDishes(), loadSystem()])
+    await Promise.all([loadDishes(), loadSystem(), loadCafeterias()])
   } catch (error) {
     clearAdminToken()
     uni.redirectTo({ url: '/pages/admin-login/admin-login' })
@@ -213,6 +233,18 @@ async function loadDishes() {
   } finally {
     loadingDishes.value = false
   }
+}
+
+async function loadCafeterias() {
+  try {
+    cafeterias.value = await getCafeterias()
+  } catch {
+    cafeterias.value = []
+  }
+}
+
+function selectCafeteria(cafeteriaId) {
+  selectedCafeteriaId.value = cafeteriaId
 }
 
 async function loadSystem() {
@@ -455,6 +487,35 @@ function logout() {
   background: #fff;
   color: var(--text);
   font-size: 24rpx;
+}
+
+.cafeteria-filter {
+  width: 100%;
+  margin-top: 18rpx;
+  white-space: nowrap;
+}
+
+.cafeteria-filter-inner {
+  display: inline-flex;
+  gap: 12rpx;
+  padding-bottom: 4rpx;
+}
+
+.cafeteria-chip {
+  display: inline-block;
+  padding: 12rpx 20rpx;
+  border: 2rpx solid var(--border);
+  border-radius: 28rpx;
+  background: #fff;
+  color: var(--muted);
+  font-size: 22rpx;
+}
+
+.cafeteria-chip.active {
+  border-color: var(--main);
+  background: var(--light-orange);
+  color: var(--dark-orange);
+  font-weight: 750;
 }
 
 .admin-dish {
