@@ -14,6 +14,8 @@
       "ignore": [
         "frontend",
         "frontend/**",
+        "student-app",
+        "student-app/**",
         "**/node_modules/**",
         ".git",
         ".git/**",
