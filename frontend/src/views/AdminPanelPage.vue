@@ -17,12 +17,18 @@
     <div v-if="tab === 'dishes'" class="panel-section">
       <div class="toolbar">
         <input v-model="dishKeyword" placeholder="搜索菜品..." class="search-input" @input="searchDishes" />
+        <select v-model="dishCafeteriaId" class="filter-select dish-cafeteria-select">
+          <option value="">全部食堂</option>
+          <option v-for="cafeteria in cafeterias" :key="cafeteria.cafeteria_id" :value="cafeteria.cafeteria_id">
+            {{ cafeteria.cafeteria_name }}
+          </option>
+        </select>
         <button class="btn btn-primary" @click="openCreateDish">+ 新增</button>
       </div>
       <div v-if="dishesLoading" class="loading">加载中...</div>
-      <div v-else-if="dishes.length === 0" class="empty">暂无菜品</div>
+      <div v-else-if="filteredDishes.length === 0" class="empty">暂无符合条件的菜品</div>
       <div v-else class="dish-list">
-        <div v-for="dish in dishes" :key="dish.dish_id" class="dish-card">
+        <div v-for="dish in filteredDishes" :key="dish.dish_id" class="dish-card">
           <div class="dish-info" @click="openEditDish(dish)">
             <div class="dish-name">{{ dish.dish_name }}</div>
             <div class="dish-meta">
@@ -138,7 +144,7 @@
   </div>
 </template>
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   isLoggedIn, clearToken, adminVerify,
@@ -170,6 +176,7 @@ export default {
     const dishes = ref([]);
     const dishesLoading = ref(false);
     const dishKeyword = ref('');
+    const dishCafeteriaId = ref('');
     const feedbacks = ref([]);
     const feedbacksLoading = ref(false);
     const feedbackFilter = ref('');
@@ -183,6 +190,10 @@ export default {
     const editForm = ref({ dish_name: '', keywords: '', cafeteria_id: '', window_id: '', price_min: 0, price_max: 0, category_major: '', category_minor: '', flavor: '', is_packable: '未知', reason: '' });
     const versionInfo = ref(null);
     const changeLog = ref([]);
+    const filteredDishes = computed(() => {
+      if (!dishCafeteriaId.value) return dishes.value;
+      return dishes.value.filter(dish => dish.cafeteria_id === dishCafeteriaId.value);
+    });
 async function searchDishes() {
       dishesLoading.value = true;
       try { const r = await adminListDishes(dishKeyword.value); dishes.value = r.data.data || r.data || []; }
@@ -255,7 +266,7 @@ async function searchDishes() {
     }
     function logout() { clearToken(); router.push('/admin'); }
 
-    return { tab, logout, dishes, dishesLoading, dishKeyword, searchDishes, feedbacks, feedbacksLoading, feedbackFilter, loadFeedbacks, statusLabel, updateFBStatus, toggleStatus, showDishModal, isEditing, isCopying, saving, modalError, editForm, cafeterias, windows, onCafeteriaChange, openEditDish, openCreateDish, openCopyDish, closeDishModal, saveDish, versionInfo, changeLog, doRollback };
+    return { tab, logout, dishes, filteredDishes, dishesLoading, dishKeyword, dishCafeteriaId, searchDishes, feedbacks, feedbacksLoading, feedbackFilter, loadFeedbacks, statusLabel, updateFBStatus, toggleStatus, showDishModal, isEditing, isCopying, saving, modalError, editForm, cafeterias, windows, onCafeteriaChange, openEditDish, openCreateDish, openCopyDish, closeDishModal, saveDish, versionInfo, changeLog, doRollback };
   },
 };
 </script>
@@ -271,6 +282,7 @@ async function searchDishes() {
 .toolbar { display: flex; gap: 8px; margin-bottom: 12px; }
 .search-input { flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
 .filter-select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+.dish-cafeteria-select { flex: 0 1 210px; min-width: 150px; }
 .btn { padding: 8px 16px; border: 1px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; font-size: 14px; }
 .btn-primary { background: #e74c3c; color: #fff; border-color: #e74c3c; }
 .btn-warning { background: #f39c12; color: #fff; border-color: #f39c12; margin-top: 8px; }
@@ -319,4 +331,9 @@ async function searchDishes() {
 .form-row .half { flex: 1; }
 .modal-error { color: #e74c3c; font-size: 13px; margin-bottom: 8px; }
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+@media (max-width: 560px) {
+  .toolbar { flex-wrap: wrap; }
+  .search-input, .dish-cafeteria-select { flex: 1 1 100%; min-width: 0; }
+  .toolbar .btn-primary { margin-left: auto; }
+}
 </style>
