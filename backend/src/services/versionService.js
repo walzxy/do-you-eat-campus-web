@@ -1,212 +1,132 @@
-﻿// 版本管理服务
-// 支持 publishData（先备份旧数据→写入新数据→创建新版本）和 publish（仅创建当前数据的快照）
-// 版本快照保存在 data/admin/versions/
+const path = require('path');
+const fs = require('fs');
+const { config } = require('../config');
+const auditRepository = require('../repositories/adminAuditRepository');
+const cafeteriaRepository = require('../repositories/cafeteriaRepository');
+const windowRepository = require('../repositories/windowRepository');
+const dishRepository = require('../repositories/dishRepository');
 
-const path = require("path");
-const fs = require("fs");
-const { config } = require("../config");
+const useCloud = config.menuStorage === 'cloudbase' || config.adminStorage === 'cloudbase';
+const versionsDir = path.resolve(config.dataDir, 'admin', 'versions');
+const metaFile = path.resolve(versionsDir, 'meta.json');
 
-const VERSIONS_DIR = path.resolve(config.dataDir, "admin", "versions");
-const META_FILE = path.resolve(VERSIONS_DIR, "meta.json");
-
-function _ensureDir() {
-  if (!fs.existsSync(VERSIONS_DIR)) {
-    fs.mkdirSync(VERSIONS_DIR, { recursive: true });
-  }
-}
-
-function _readMeta() {
-  _ensureDir();
-  if (!fs.existsSync(META_FILE)) {
-    return { current: null, previous: null, versions: [] };
-  }
-  try {
-    return JSON.parse(fs.readFileSync(META_FILE, "utf8"));
-  } catch {
-    return { current: null, previous: null, versions: [] };
-  }
-}
-
-function _writeMeta(meta) {
-  _ensureDir();
-  fs.writeFileSync(META_FILE, JSON.stringify(meta, null, 2), "utf8");
-}
-
-function _nextVersionId() {
+function makeVersionId(prefix = 'VER') {
   const now = new Date();
-  const ts = now.getFullYear() +
-    String(now.getMonth() + 1).padStart(2, "0") +
-    String(now.getDate()).padStart(2, "0") +
-    String(now.getHours()).padStart(2, "0") +
-    String(now.getMinutes()).padStart(2, "0") +
-    String(now.getSeconds()).padStart(2, "0");
-  const meta = _readMeta();
-  const existing = new Set((meta.versions || []).map(v => v.version_id));
-  let suffix = "";
-  let counter = 1;
-  while (existing.has("VER" + ts + suffix)) {
-    suffix = "-" + String(counter++).padStart(3, "0");
-  }
-  return "VER" + ts + suffix;
+  return prefix + now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') +
+    String(now.getDate()).padStart(2, '0') + String(now.getHours()).padStart(2, '0') +
+    String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0') +
+    '-' + Math.random().toString(36).slice(2, 8);
 }
 
-function _readCurrentData() {
-  const dataDir = config.activeDataDir;
-  const collections = ["cafeterias.json", "windows.json", "dishes.json"];
+function currentSnapshot() {
+  return {
+    'cafeterias.json': cafeteriaRepository.findAll(),
+    'windows.json': windowRepository.findAll(),
+    'dishes.json': dishRepository.findAll(),
+  };
+}
+
+async function cloudPublish(snapshot, reason, operator = 'admin') {
+  const versions = await auditRepository.listVersions();
+  const previous = versions.slice().sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))[0] || null;
+  const entry = {
+    version_id: makeVersionId(),
+    created_at: new Date().toISOString(),
+    reason,
+    operator,
+    previous_version_id: previous ? previous.version_id : null,
+    snapshot,
+  };
+  await auditRepository.addVersion(entry);
+  return entry;
+}
+
+function readMeta() {
+  if (!fs.existsSync(metaFile)) return { current: null, previous: null, versions: [] };
+  try { return JSON.parse(fs.readFileSync(metaFile, 'utf8')); } catch { return { current: null, previous: null, versions: [] }; }
+}
+
+function writeMeta(meta) {
+  if (!fs.existsSync(versionsDir)) fs.mkdirSync(versionsDir, { recursive: true });
+  fs.writeFileSync(metaFile, JSON.stringify(meta, null, 2), 'utf8');
+}
+
+function localSnapshot() {
   const data = {};
-  for (const file of collections) {
-    const filePath = path.resolve(dataDir, file);
-    if (fs.existsSync(filePath)) {
-      data[file] = JSON.parse(fs.readFileSync(filePath, "utf8"));
-    } else {
-      data[file] = [];
-    }
+  for (const file of ['cafeterias.json', 'windows.json', 'dishes.json']) {
+    const filePath = path.resolve(config.activeDataDir, file);
+    data[file] = fs.existsSync(filePath) ? JSON.parse(fs.readFileSync(filePath, 'utf8')) : [];
   }
   return data;
 }
 
-function _atomicReplace(nextData) {
-  const os = require("os");
+function localReplace(nextData) {
   const dataDir = config.activeDataDir;
-  const stagingDir = fs.mkdtempSync(path.join(os.tmpdir(), "canteen-version-"));
-  try {
-    for (const [name, coll] of Object.entries(nextData)) {
-      fs.writeFileSync(path.join(stagingDir, name), JSON.stringify(coll, null, 2), "utf8");
-    }
-    const backupDir = dataDir + ".backup-" + Date.now();
-    let movedExisting = false;
-    try {
-      if (fs.existsSync(dataDir)) {
-        fs.renameSync(dataDir, backupDir);
-        movedExisting = true;
-      }
-      fs.renameSync(stagingDir, dataDir);
-      if (movedExisting) fs.rmSync(backupDir, { recursive: true, force: true });
-    } catch (renameErr) {
-      if (fs.existsSync(dataDir)) fs.rmSync(dataDir, { recursive: true, force: true });
-      if (movedExisting && fs.existsSync(backupDir)) fs.renameSync(backupDir, dataDir);
-      throw renameErr;
-    }
-  } catch (err) {
-    if (fs.existsSync(stagingDir)) fs.rmSync(stagingDir, { recursive: true, force: true });
-    throw err;
+  for (const [name, value] of Object.entries(nextData)) {
+    fs.writeFileSync(path.resolve(dataDir, name), JSON.stringify(value, null, 2), 'utf8');
   }
 }
 
-/**
- * 发布新数据版本（备份旧数据 → 写入新数据 → 创建版本记录）
- * @param {Object} nextData - { "cafeterias.json": [], "windows.json": [], "dishes.json": [] }
- * @param {string} reason
- * @param {string} [operator="admin"]
- * @returns {Object} 版本信息
- */
-function publishData(nextData, reason, operator = "admin") {
-  _ensureDir();
-  const meta = _readMeta();
-  const currentData = _readCurrentData();
-  const previousVersionId = _nextVersionId();
-  const prevSnapshotFile = path.resolve(VERSIONS_DIR, previousVersionId + ".json");
-  fs.writeFileSync(prevSnapshotFile, JSON.stringify(currentData, null, 2), "utf8");
-  _atomicReplace(nextData);
-  const now = new Date();
-  const versionEntry = {
-    version_id: _nextVersionId(),
-    created_at: now.toISOString(),
-    reason: reason,
-    operator: operator,
-    previous_version_id: previousVersionId,
-  };
-  const newSnapshotFile = path.resolve(VERSIONS_DIR, versionEntry.version_id + ".json");
-  fs.writeFileSync(newSnapshotFile, JSON.stringify(nextData, null, 2), "utf8");
-  if (meta.current) {
-    meta.previous = meta.current;
+async function publishData(nextData, reason, operator = 'admin') {
+  if (useCloud) {
+    const entry = await cloudPublish(nextData, reason, operator);
+    await cafeteriaRepository.save(nextData['cafeterias.json'] || []);
+    await windowRepository.save(nextData['windows.json'] || []);
+    await dishRepository.save(nextData['dishes.json'] || []);
+    return entry;
   }
-  meta.current = versionEntry;
-  meta.versions.push(versionEntry);
-  if (meta.versions.length > 10) {
-    meta.versions = meta.versions.slice(-10);
-  }
-  _writeMeta(meta);
-  return versionEntry;
+  const meta = readMeta();
+  const entry = { version_id: makeVersionId(), created_at: new Date().toISOString(), reason, operator, snapshot: nextData };
+  localReplace(nextData);
+  if (!fs.existsSync(versionsDir)) fs.mkdirSync(versionsDir, { recursive: true });
+  fs.writeFileSync(path.resolve(versionsDir, entry.version_id + '.json'), JSON.stringify(nextData, null, 2), 'utf8');
+  if (meta.current) meta.previous = meta.current;
+  meta.current = entry;
+  meta.versions = [...(meta.versions || []), entry].slice(-10);
+  writeMeta(meta);
+  return entry;
 }
 
-/**
- * 仅创建当前数据快照并记录版本（不改变数据）
- */
-function publish(reason, operator = "admin") {
-  _ensureDir();
-  const meta = _readMeta();
-  const currentData = _readCurrentData();
-  const versionId = _nextVersionId();
-  const snapshotFile = path.resolve(VERSIONS_DIR, versionId + ".json");
-  fs.writeFileSync(snapshotFile, JSON.stringify(currentData, null, 2), "utf8");
-  const now = new Date();
-  const versionEntry = {
-    version_id: versionId,
-    created_at: now.toISOString(),
-    reason: reason,
-    operator: operator,
-  };
-  if (meta.current) {
-    meta.previous = meta.current;
-  }
-  meta.current = versionEntry;
-  meta.versions.push(versionEntry);
-  if (meta.versions.length > 10) {
-    meta.versions = meta.versions.slice(-10);
-  }
-  _writeMeta(meta);
-  return versionEntry;
+async function publish(reason, operator = 'admin') {
+  if (useCloud) return cloudPublish(currentSnapshot(), reason, operator);
+  return publishData(localSnapshot(), reason, operator);
 }
 
-function rollback() {
-  const meta = _readMeta();
-  if (!meta.previous) {
-    return { success: false, message: "没有可回滚的上一版本" };
+async function rollback() {
+  if (useCloud) {
+    const versions = await auditRepository.listVersions();
+    const ordered = versions.slice().sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+    if (ordered.length < 2) return { success: false, message: '没有可回滚的上一版本' };
+    const previous = ordered[1];
+    const snapshot = previous.snapshot || {};
+    await cafeteriaRepository.save(snapshot['cafeterias.json'] || []);
+    await windowRepository.save(snapshot['windows.json'] || []);
+    await dishRepository.save(snapshot['dishes.json'] || []);
+    const entry = await cloudPublish(currentSnapshot(), '回滚到版本 ' + previous.version_id, 'admin');
+    return { success: true, version_id: entry.version_id, message: '已回滚到版本 ' + previous.version_id };
   }
-  const prevVersionId = meta.previous.version_id;
-  const snapshotFile = path.resolve(VERSIONS_DIR, prevVersionId + ".json");
-  if (!fs.existsSync(snapshotFile)) {
-    return { success: false, message: "上一版本快照文件缺失: " + prevVersionId };
-  }
-  const snapshot = JSON.parse(fs.readFileSync(snapshotFile, "utf8"));
-  const now = new Date();
-  const rollbackVersionId = "RVB" +
-    now.getFullYear() +
-    String(now.getMonth() + 1).padStart(2, "0") +
-    String(now.getDate()).padStart(2, "0") +
-    String(now.getHours()).padStart(2, "0") +
-    String(now.getMinutes()).padStart(2, "0") +
-    String(now.getSeconds()).padStart(2, "0");
-  const currentSnapshot = _readCurrentData();
-  const currentSnapshotFile = path.resolve(VERSIONS_DIR, rollbackVersionId + ".json");
-  fs.writeFileSync(currentSnapshotFile, JSON.stringify(currentSnapshot, null, 2), "utf8");
-  _atomicReplace(snapshot);
-  const rollbackEntry = {
-    version_id: rollbackVersionId,
-    created_at: now.toISOString(),
-    reason: "回滚到版本 " + prevVersionId,
-    operator: "admin",
-    rollback_from: meta.current ? meta.current.version_id : null,
-    rollback_to: prevVersionId,
-  };
+  const meta = readMeta();
+  if (!meta.previous) return { success: false, message: '没有可回滚的上一版本' };
+  const file = path.resolve(versionsDir, meta.previous.version_id + '.json');
+  if (!fs.existsSync(file)) return { success: false, message: '上一版本快照文件缺失: ' + meta.previous.version_id };
+  const snapshot = JSON.parse(fs.readFileSync(file, 'utf8'));
+  localReplace(snapshot);
+  const previousId = meta.previous.version_id;
+  const entry = { version_id: makeVersionId('RVB'), created_at: new Date().toISOString(), reason: '回滚到版本 ' + previousId, operator: 'admin' };
   meta.previous = meta.current;
-  meta.current = rollbackEntry;
-  meta.versions.push(rollbackEntry);
-  if (meta.versions.length > 10) {
-    meta.versions = meta.versions.slice(-10);
-  }
-  _writeMeta(meta);
-  return { success: true, version_id: rollbackVersionId, message: "已回滚到版本 " + prevVersionId };
+  meta.current = entry;
+  meta.versions = [...(meta.versions || []), entry].slice(-10);
+  writeMeta(meta);
+  return { success: true, version_id: entry.version_id, message: '已回滚到版本 ' + previousId };
 }
 
-function getInfo() {
-  const meta = _readMeta();
-  return {
-    current: meta.current,
-    previous: meta.previous,
-    total_versions: meta.versions.length,
-  };
+async function getInfo() {
+  if (useCloud) {
+    const versions = (await auditRepository.listVersions()).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+    return { current: versions[0] || null, previous: versions[1] || null, total_versions: versions.length };
+  }
+  const meta = readMeta();
+  return { current: meta.current, previous: meta.previous, total_versions: (meta.versions || []).length };
 }
 
 module.exports = { publish, publishData, rollback, getInfo };

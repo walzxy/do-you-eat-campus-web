@@ -112,7 +112,7 @@ async function updateDish(req, res) {
   if (index === -1) return fail(res, '菜品不存在', 404);
 
   // 先做版本快照（备份修改前的数据），再写入修改
-  versionService.publish('编辑菜品: ' + (all[index].dish_name || dishId), 'admin');
+  await versionService.publish('编辑菜品: ' + (all[index].dish_name || dishId), 'admin');
 
   if (dish_name !== undefined) all[index].dish_name = dish_name;
   if (keywords !== undefined) all[index].keywords = keywords;
@@ -125,7 +125,7 @@ async function updateDish(req, res) {
 
   await dishRepository.save(all);
 
-  changeLogService.log({ operator: 'admin', action: 'update_dish', target_type: 'dish', target_id: dishId, changes, reason: req.body.reason || '' });
+  await changeLogService.log({ operator: 'admin', action: 'update_dish', target_type: 'dish', target_id: dishId, changes, reason: req.body.reason || '' });
 
   return success(res, { dish_id: dishId, changes });
 }
@@ -171,10 +171,10 @@ async function createDish(req, res) {
   all.push(newDish);
 
   // 先做版本快照（备份新增前的数据），再写入新增数据
-  versionService.publish('新增菜品: ' + newDish.dish_name, 'admin');
+  await versionService.publish('新增菜品: ' + newDish.dish_name, 'admin');
 
   await dishRepository.save(all);
-  changeLogService.log({ operator: 'admin', action: 'create_dish', target_type: 'dish', target_id: nextId, changes: { _new: newDish }, reason: req.body.reason || '新增菜品' });
+  await changeLogService.log({ operator: 'admin', action: 'create_dish', target_type: 'dish', target_id: nextId, changes: { _new: newDish }, reason: req.body.reason || '新增菜品' });
   return success(res, newDish, 201);
 }
 // POST /api/admin/dishes/:dishId/copy
@@ -210,9 +210,9 @@ async function copyDish(req, res) {
 
   all.push(newDish);
   // 先做版本快照（备份新增前的数据），再写入新增数据
-  versionService.publish('复制新增: ' + newDish.dish_name, 'admin');
+  await versionService.publish('复制新增: ' + newDish.dish_name, 'admin');
   await dishRepository.save(all);
-  changeLogService.log({ operator: 'admin', action: 'create_dish', target_type: 'dish', target_id: nextId, changes: { _new: newDish, _copied_from: dishId }, reason: reason || '复制新增' });
+  await changeLogService.log({ operator: 'admin', action: 'create_dish', target_type: 'dish', target_id: nextId, changes: { _new: newDish, _copied_from: dishId }, reason: reason || '复制新增' });
   return success(res, newDish, 201);
 }
 
@@ -234,12 +234,12 @@ async function toggleDishStatus(req, res) {
   const oldStatus = all[index].availability_status;
 
   // 先做版本快照（备份修改前的数据），再写入修改
-  versionService.publish('菜品 ' + (status === '暂时未售卖' ? '下架' : '恢复供应') + ': ' + all[index].dish_name, 'admin');
+  await versionService.publish('菜品 ' + (status === '暂时未售卖' ? '下架' : '恢复供应') + ': ' + all[index].dish_name, 'admin');
 
   all[index].availability_status = status;
   await dishRepository.save(all);
 
-  changeLogService.log({ operator: 'admin', action: 'toggle_status', target_type: 'dish', target_id: dishId, changes: { availability_status: { before: oldStatus, after: status } }, reason: reason || (status === '暂时未售卖' ? '下架' : '恢复供应') });
+  await changeLogService.log({ operator: 'admin', action: 'toggle_status', target_type: 'dish', target_id: dishId, changes: { availability_status: { before: oldStatus, after: status } }, reason: reason || (status === '暂时未售卖' ? '下架' : '恢复供应') });
 
   return success(res, { dish_id: dishId, old_status: oldStatus, new_status: status });
 }
@@ -279,7 +279,7 @@ async function updateFeedbackStatus(req, res) {
   try {
     const result = await feedbackRepository.updateStatus(feedbackId, status);
     if (!result) return fail(res, '反馈不存在', 404);
-    changeLogService.log({ operator: 'admin', action: 'update_feedback_status', target_type: 'feedback', target_id: feedbackId, changes: { status: { before: result.old_status, after: status } }, reason: reason || '' });
+    await changeLogService.log({ operator: 'admin', action: 'update_feedback_status', target_type: 'feedback', target_id: feedbackId, changes: { status: { before: result.old_status, after: status } }, reason: reason || '' });
     return success(res, { feedback_id: feedbackId, old_status: result.old_status, new_status: status });
   } catch (e) {
     return fail(res, '保存失败', 500);
@@ -358,14 +358,14 @@ async function importConfirm(req, res) {
   }
 
   // 先创建旧数据版本快照，再写入新数据
-  versionService.publish(reason || 'Excel 导入更新[旧数据备份]', 'admin');
+  await versionService.publish(reason || 'Excel 导入更新[旧数据备份]', 'admin');
   try {
     await cafeteriaRepository.save(data.cafeterias);
     await windowRepository.save(data.windows);
     await dishRepository.save(data.dishes);
 
-    const versionEntry = versionService.publish(reason || 'Excel 导入更新', 'admin');
-    changeLogService.log({ operator: 'admin', action: 'import_publish', target_type: 'data', target_id: 'all', changes: { _import: { cafeteria_count: data.cafeterias.length, windows_count: data.windows.length, dishes_count: data.dishes.length } }, reason: reason || 'Excel 导入发布', data_version: versionEntry.version_id });
+    const versionEntry = await versionService.publish(reason || 'Excel 导入更新', 'admin');
+    await changeLogService.log({ operator: 'admin', action: 'import_publish', target_type: 'data', target_id: 'all', changes: { _import: { cafeteria_count: data.cafeterias.length, windows_count: data.windows.length, dishes_count: data.dishes.length } }, reason: reason || 'Excel 导入发布', data_version: versionEntry.version_id });
     return success(res, { message: '导入发布成功', version: versionEntry });
   } catch (err) {
     return fail(res, '导入发布失败: ' + err.message, 500);
@@ -376,19 +376,19 @@ async function importConfirm(req, res) {
 // 版本管理
 // ============================================================
 
-function getVersions(req, res) { return success(res, versionService.getInfo()); }
+async function getVersions(req, res) { return success(res, await versionService.getInfo()); }
 
-function rollbackVersion(req, res) {
+async function rollbackVersion(req, res) {
   const { reason } = req.body;
-  const result = versionService.rollback();
+  const result = await versionService.rollback();
   if (!result.success) return fail(res, result.message, 400);
-  changeLogService.log({ operator: 'admin', action: 'rollback', target_type: 'version', target_id: result.version_id, changes: { _rollback: result.message }, reason: reason || '回滚' });
+  await changeLogService.log({ operator: 'admin', action: 'rollback', target_type: 'version', target_id: result.version_id, changes: { _rollback: result.message }, reason: reason || '回滚' });
   return success(res, result);
 }
 
-function getChangeLog(req, res) {
+async function getChangeLog(req, res) {
   const { page, pageSize, target_type, action } = req.query;
-  return success(res, changeLogService.query({ page: parseInt(page, 10) || 1, pageSize: parseInt(pageSize, 10) || 50, target_type: target_type || undefined, action: action || undefined }));
+  return success(res, await changeLogService.query({ page: parseInt(page, 10) || 1, pageSize: parseInt(pageSize, 10) || 50, target_type: target_type || undefined, action: action || undefined }));
 }
 
 // ============================================================
