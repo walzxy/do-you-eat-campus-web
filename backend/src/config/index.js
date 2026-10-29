@@ -27,6 +27,8 @@ const config = {
   menuStorage: process.env.MENU_STORAGE || 'file',
   // 管理口令：从环境变量读取，禁止写入前端代码或 Git
   adminPassword: process.env.ADMIN_PASSWORD || '',
+  // 管理 Token 签名密钥：生产环境建议单独配置；未配置时兼容使用管理口令派生
+  adminTokenSecret: process.env.ADMIN_TOKEN_SECRET || process.env.ADMIN_PASSWORD || '',
 };
 
 module.exports = { config };
