@@ -16,6 +16,8 @@
         "frontend/**",
         "student-app",
         "student-app/**",
+        "scripts",
+        "scripts/**",
         "**/node_modules/**",
         ".git",
         ".git/**",

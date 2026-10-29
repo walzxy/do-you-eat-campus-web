@@ -250,6 +250,10 @@
 }
 ```
 
+## 主数据持久化
+
+生产环境的食堂、窗口、菜品主数据存储在 CloudBase 的 `cafeterias`、`windows`、`dishes` 集合中。管理员编辑、新增、下架和 Excel 导入都会写入这些集合；`data/processed/*.json` 仅作为初始迁移快照和本地开发回退数据。
+
 **400 - 参数错误**
 ```json
 {

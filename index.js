@@ -6,6 +6,7 @@ process.env.DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 process.env.DATA_SOURCE = process.env.DATA_SOURCE || path.join(__dirname, 'data', 'processed');
 process.env.FEEDBACK_STORAGE = process.env.FEEDBACK_STORAGE || 'cloudbase';
 process.env.SOCIAL_STORAGE = process.env.SOCIAL_STORAGE || 'cloudbase';
+process.env.MENU_STORAGE = process.env.MENU_STORAGE || 'cloudbase';
 process.env.CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
 
 const serverless = require('serverless-http');

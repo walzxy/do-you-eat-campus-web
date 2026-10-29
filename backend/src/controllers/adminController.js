@@ -36,7 +36,7 @@ function verify(req, res) {
 // ============================================================
 
 // GET /api/admin/dishes
-function listDishes(req, res) {
+async function listDishes(req, res) {
   const { keyword } = req.query;
   let dishes;
   if (keyword && keyword.trim()) {
@@ -48,7 +48,7 @@ function listDishes(req, res) {
 }
 
 // GET /api/admin/dishes/:dishId
-function getDish(req, res) {
+async function getDish(req, res) {
   const { dishId } = req.params;
   const dish = dishRepository.findById(dishId);
   if (!dish) return fail(res, '菜品不存在: ' + dishId, 404);
@@ -62,7 +62,7 @@ function getDish(req, res) {
 }
 
 // PUT /api/admin/dishes/:dishId
-function updateDish(req, res) {
+async function updateDish(req, res) {
   const { dishId } = req.params;
   const dish = dishRepository.findById(dishId);
   if (!dish) return fail(res, '菜品不存在: ' + dishId, 404);
@@ -123,7 +123,7 @@ function updateDish(req, res) {
   if (flavor !== undefined) all[index].flavor = flavor;
   if (is_packable !== undefined) all[index].is_packable = is_packable;
 
-  dishRepository.save(all);
+  await dishRepository.save(all);
 
   changeLogService.log({ operator: 'admin', action: 'update_dish', target_type: 'dish', target_id: dishId, changes, reason: req.body.reason || '' });
 
@@ -131,7 +131,7 @@ function updateDish(req, res) {
 }
 
 // POST /api/admin/dishes
-function createDish(req, res) {
+async function createDish(req, res) {
   const { dish_name, keywords, cafeteria_id, window_id, price_min, price_max, flavor, category_major, category_minor, is_packable, availability_status } = req.body;
 
   if (!dish_name || typeof dish_name !== 'string' || dish_name.trim() === '') return fail(res, '菜品名称不能为空', 400);
@@ -173,12 +173,12 @@ function createDish(req, res) {
   // 先做版本快照（备份新增前的数据），再写入新增数据
   versionService.publish('新增菜品: ' + newDish.dish_name, 'admin');
 
-  dishRepository.save(all);
+  await dishRepository.save(all);
   changeLogService.log({ operator: 'admin', action: 'create_dish', target_type: 'dish', target_id: nextId, changes: { _new: newDish }, reason: req.body.reason || '新增菜品' });
   return success(res, newDish, 201);
 }
 // POST /api/admin/dishes/:dishId/copy
-function copyDish(req, res) {
+async function copyDish(req, res) {
   const { dishId } = req.params;
   const source = dishRepository.findById(dishId);
   if (!source) return fail(res, '源菜品不存在: ' + dishId, 404);
@@ -211,13 +211,13 @@ function copyDish(req, res) {
   all.push(newDish);
   // 先做版本快照（备份新增前的数据），再写入新增数据
   versionService.publish('复制新增: ' + newDish.dish_name, 'admin');
-  dishRepository.save(all);
+  await dishRepository.save(all);
   changeLogService.log({ operator: 'admin', action: 'create_dish', target_type: 'dish', target_id: nextId, changes: { _new: newDish, _copied_from: dishId }, reason: reason || '复制新增' });
   return success(res, newDish, 201);
 }
 
 // PATCH /api/admin/dishes/:dishId/status
-function toggleDishStatus(req, res) {
+async function toggleDishStatus(req, res) {
   const { dishId } = req.params;
   const dish = dishRepository.findById(dishId);
   if (!dish) return fail(res, '菜品不存在', 404);
@@ -237,7 +237,7 @@ function toggleDishStatus(req, res) {
   versionService.publish('菜品 ' + (status === '暂时未售卖' ? '下架' : '恢复供应') + ': ' + all[index].dish_name, 'admin');
 
   all[index].availability_status = status;
-  dishRepository.save(all);
+  await dishRepository.save(all);
 
   changeLogService.log({ operator: 'admin', action: 'toggle_status', target_type: 'dish', target_id: dishId, changes: { availability_status: { before: oldStatus, after: status } }, reason: reason || (status === '暂时未售卖' ? '下架' : '恢复供应') });
 
@@ -300,7 +300,7 @@ function importPreview(req, res) {
   }
 }
 
-function importConfirm(req, res) {
+async function importConfirm(req, res) {
   const { data, reason } = req.body;
   if (!data || !data.cafeterias || !data.windows || !data.dishes) return fail(res, '数据不完整', 400);
 
@@ -358,45 +358,17 @@ function importConfirm(req, res) {
   }
 
   // 先创建旧数据版本快照，再写入新数据
-  const fs = require('fs');
-  const path = require('path');
-  const os = require('os');
-  const dataDir = require('../config').config.activeDataDir;
-
   versionService.publish(reason || 'Excel 导入更新[旧数据备份]', 'admin');
-
-  let stagingDir;
   try {
-    stagingDir = fs.mkdtempSync(path.join(os.tmpdir(), 'canteen-import-'));
-    for (const [name, coll] of Object.entries({ 'cafeterias.json': data.cafeterias, 'windows.json': data.windows, 'dishes.json': data.dishes })) {
-      fs.writeFileSync(path.join(stagingDir, name), JSON.stringify(coll, null, 2), 'utf8');
-    }
-
-    // 原子替换：备份原目录 → 移动临时目录 → 删除备份
-    const backupDir = dataDir + '.backup-' + Date.now();
-    let movedExisting = false;
-    try {
-      if (fs.existsSync(dataDir)) {
-        fs.renameSync(dataDir, backupDir);
-        movedExisting = true;
-      }
-      fs.renameSync(stagingDir, dataDir);
-      stagingDir = null; // 防止 finally 删除
-      if (movedExisting) fs.rmSync(backupDir, { recursive: true, force: true });
-    } catch (renameErr) {
-      // 回滚：还原备份
-      if (fs.existsSync(dataDir)) fs.rmSync(dataDir, { recursive: true, force: true });
-      if (movedExisting && fs.existsSync(backupDir)) fs.renameSync(backupDir, dataDir);
-      throw renameErr;
-    }
+    await cafeteriaRepository.save(data.cafeterias);
+    await windowRepository.save(data.windows);
+    await dishRepository.save(data.dishes);
 
     const versionEntry = versionService.publish(reason || 'Excel 导入更新', 'admin');
     changeLogService.log({ operator: 'admin', action: 'import_publish', target_type: 'data', target_id: 'all', changes: { _import: { cafeteria_count: data.cafeterias.length, windows_count: data.windows.length, dishes_count: data.dishes.length } }, reason: reason || 'Excel 导入发布', data_version: versionEntry.version_id });
     return success(res, { message: '导入发布成功', version: versionEntry });
   } catch (err) {
     return fail(res, '导入发布失败: ' + err.message, 500);
-  } finally {
-    if (stagingDir && fs.existsSync(stagingDir)) fs.rmSync(stagingDir, { recursive: true, force: true });
   }
 }
 
@@ -423,9 +395,9 @@ function getChangeLog(req, res) {
 // 辅助
 // ============================================================
 
-function listCafeterias(req, res) { return success(res, { data: cafeteriaRepository.findAll(), total: cafeteriaRepository.findAll().length }); }
+async function listCafeterias(req, res) { const data = cafeteriaRepository.findAll(); return success(res, { data, total: data.length }); }
 
-function listWindowsByCafeteria(req, res) { return success(res, { data: windowRepository.findByCafeteriaId(req.params.cafeteriaId), total: windowRepository.findByCafeteriaId(req.params.cafeteriaId).length }); }
+async function listWindowsByCafeteria(req, res) { const data = windowRepository.findByCafeteriaId(req.params.cafeteriaId); return success(res, { data, total: data.length }); }
 
 function getStatusOptions(req, res) { return success(res, { dish_statuses: ['已核实售卖', '菜单记录，未核实', '可能售卖', '暂时未售卖'], feedback_statuses: FEEDBACK_STATUSES }); }
 module.exports = {

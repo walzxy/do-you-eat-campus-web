@@ -13,6 +13,9 @@ const adminRoutes = require('./routes/admin');
 const accountRoutes = require('./routes/account');
 const communityRoutes = require('./routes/community');
 const notificationRoutes = require('./routes/notifications');
+const cafeteriaRepository = require('./repositories/cafeteriaRepository');
+const windowRepository = require('./repositories/windowRepository');
+const dishRepository = require('./repositories/dishRepository');
 
 const app = express();
 
@@ -21,6 +24,21 @@ app.use(express.json());
 app.use(requestLogger);
 
 app.use('/api', healthRoute);
+
+// 云函数生产环境从 CloudBase 预加载主数据；本地 file 模式保持原有同步读取方式。
+app.use('/api', async (req, res, next) => {
+  try {
+    await Promise.all([
+      cafeteriaRepository.ready(),
+      windowRepository.ready(),
+      dishRepository.ready(),
+    ]);
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.use('/api/cafeterias', cafeteriasRoute);
 app.use('/api/windows', windowsRoute);
 app.use('/api/dishes', dishesRoute);
