@@ -32,8 +32,6 @@
         </view>
       </view>
 
-      <text v-if="dish.dish_id" class="modal-rating-link" @click="openDetail">查看完整详情并给这道菜评分 ›</text>
-
       <view class="modal-actions">
         <button class="modal-secondary" @click="$emit('secondary')">{{ secondaryLabel }}</button>
         <button class="modal-primary" @click="$emit('confirm')">{{ confirmLabel }}</button>
@@ -43,20 +41,14 @@
 </template>
 
 <script setup>
-const props = defineProps({
+defineProps({
   dish: { type: Object, default: null },
   visible: { type: Boolean, default: false },
   confirmLabel: { type: String, default: '就这个' },
   secondaryLabel: { type: String, default: '关闭' }
 })
 
-const emit = defineEmits(['close', 'confirm', 'secondary'])
-
-function openDetail() {
-  if (!props.dish?.dish_id) return
-  emit('close')
-  uni.navigateTo({ url: `/pages/dish-detail/dish-detail?dishId=${encodeURIComponent(props.dish.dish_id)}` })
-}
+defineEmits(['close', 'confirm', 'secondary'])
 
 function formatPrice(dish) {
   const min = dish?.price_min
@@ -196,7 +188,6 @@ function locationText(dish) {
   border-bottom: 0;
 }
 
-.modal-rating-link { display: block; margin-top: 24rpx; color: var(--dark-orange); font-size: 24rpx; font-weight: 700; text-align: center; }
 
 .modal-info-row text:last-child {
   color: var(--text);

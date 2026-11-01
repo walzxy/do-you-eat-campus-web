@@ -5,29 +5,11 @@
       <text class="page-title">选一选</text>
       <text class="page-subtitle">把现在在意的条件告诉我，结果会直接来自菜品数据。</text>
 
-      <view v-if="quickMode" class="quick-result-head">
-        <text class="section-title">{{ quickTitle }}的菜品</text>
-        <text class="custom-budget-link" @click="quickMode = false">调整筛选条件 ›</text>
-      </view>
-
-      <view v-if="searched || quickMode" class="result-heading">
-        <text class="section-title">匹配结果</text>
-        <text class="section-caption">{{ loading ? '正在查找…' : `找到 ${results.length} 道可选菜品` }}</text>
-      </view>
-      <view v-if="error" class="error-card soft-card">{{ error }}</view>
-      <view v-if="!loading && !error && searched && !results.length" class="empty-card soft-card">没有匹配到菜品，可以放宽一个条件再试试。</view>
-      <template v-if="!loading && !error && searched">
-        <DishCard v-for="dish in results" :key="dish.dish_id" :dish="dish" @open="openDish" />
-      </template>
-
       <view v-if="!quickMode">
 
       <view class="filter-section">
         <text class="filter-title">想吃什么</text>
         <input v-model="keyword" class="keyword-input" placeholder="输入菜名或关键词，例如：鸡蛋、面、盖饭" confirm-type="search" @confirm="search" />
-        <view class="chip-list compact-chips">
-          <text v-for="word in keywordOptions" :key="word" class="filter-chip" :class="{ active: keyword === word }" @click="keyword = keyword === word ? '' : word">{{ word }}</text>
-        </view>
       </view>
 
       <view class="filter-section">
@@ -67,6 +49,20 @@
 
       <button class="primary-button search-button" :disabled="loading" @click="search">{{ loading ? '查找中…' : '开始筛选' }}</button>
       </view>
+
+      <view v-if="quickMode" class="quick-result-head">
+        <text class="section-title">{{ quickTitle }}的菜品</text>
+        <text class="custom-budget-link" @click="quickMode = false">调整筛选条件 ›</text>
+      </view>
+      <view v-if="searched || quickMode" id="search-results" class="result-heading">
+        <text class="section-title">匹配结果</text>
+        <text class="section-caption">{{ loading ? '正在查找…' : `找到 ${results.length} 道可选菜品` }}</text>
+      </view>
+      <view v-if="error" class="error-card soft-card">{{ error }}</view>
+      <view v-if="!loading && !error && searched && !results.length" class="empty-card soft-card">没有匹配到菜品，可以放宽一个条件再试试。</view>
+      <template v-if="!loading && !error && searched">
+        <DishCard v-for="dish in results" :key="dish.dish_id" :dish="dish" @open="openDish" />
+      </template>
     </view>
     <DishDetailModal
       :dish="selectedDish"
@@ -84,12 +80,11 @@ import { onLoad } from '@dcloudio/uni-app'
 import { ref } from 'vue'
 import DishCard from '../../components/DishCard.vue'
 import DishDetailModal from '../../components/DishDetailModal.vue'
-import { getCafeterias, searchDishes } from '../../services/api'
+import { getCafeterias, searchDishes, syncHistoryRecord } from '../../services/api'
 import { fetchCandidates, getCategories } from '../../services/dishService'
 import { addHistoryRecord, getTodayStatus } from '../../services/localState'
 
 const flavorOptions = ['清淡', '原味', '微辣', '香辣', '麻辣']
-const keywordOptions = ['鸡', '面', '盖饭', '汤']
 const budgetOptions = [
   { label: '不限', value: '' },
   { label: '10 元内', value: '10' },
@@ -143,7 +138,7 @@ async function search() {
       cafeteriaId: cafeteriaId.value
     })
     results.value = selectedCategories.value.length ? found.filter(dish => selectedCategories.value.includes(dish.category_major)) : found
-    uni.pageScrollTo({ scrollTop: 0, duration: 250 })
+    if (!quickMode.value) uni.pageScrollTo({ selector: '#search-results', duration: 250 })
   } catch (requestError) {
     results.value = []
     error.value = requestError.message || '检索失败，请稍后重试'
@@ -175,7 +170,8 @@ function closeDish() {
 
 function confirmDish() {
   if (!selectedDish.value) return
-  addHistoryRecord(selectedDish.value)
+  const record = addHistoryRecord(selectedDish.value)
+  syncHistoryRecord(record).catch(() => {})
   closeDish()
   uni.showToast({ title: '已记入饭录', icon: 'success' })
 }
@@ -237,7 +233,6 @@ function normalizeBudget() {
 .custom-budget-link { display: block; margin-top: 14rpx; color: var(--dark-orange); font-size: 23rpx; }
 .cafeteria-scroll { width: 100%; margin-top: 14rpx; white-space: nowrap; }
 .cafeteria-list { display: inline-flex; gap: 12rpx; padding-bottom: 5rpx; }
-.compact-chips { margin-top: 10rpx; }
 
 .filter-hint {
   display: block;

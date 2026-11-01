@@ -101,6 +101,21 @@ describe('匿名账号与社区接口', () => {
     expect(comments.body.data[1].parent_id).toBe(first.body.data.comment_id);
   });
 
+  it('评论和回复消息包含实际内容', async () => {
+    await request(app).post('/api/account/session').set('X-Anonymous-Id', USER_A).send({ anonymous_id: USER_A });
+    await request(app).post('/api/account/session').set('X-Anonymous-Id', USER_B).send({ anonymous_id: USER_B });
+    const post = await asUser(request(app).post('/api/community/posts')).send({ content: '今天吃什么' });
+    const comment = await asUser(request(app).post(`/api/community/posts/${post.body.data.post_id}/comments`), USER_B).send({ content: '我推荐牛肉面' });
+    const noticeA = await asUser(request(app).get('/api/notifications'));
+    expect(noticeA.body.data.data[0].comment_content).toBe('我推荐牛肉面');
+    expect(noticeA.body.data.data[0].target_id).toBe(comment.body.data.comment_id);
+
+    await asUser(request(app).post(`/api/community/posts/${post.body.data.post_id}/comments`)).send({ content: '谢谢推荐！', parent_id: comment.body.data.comment_id });
+    const noticeB = await asUser(request(app).get('/api/notifications'), USER_B);
+    expect(noticeB.body.data.data[0].type).toBe('reply');
+    expect(noticeB.body.data.data[0].comment_content).toBe('谢谢推荐！');
+  });
+
   it('饭录和五星评分可以写入', async () => {
     await request(app).post('/api/account/session').set('X-Anonymous-Id', USER_A).send({ anonymous_id: USER_A });
     const history = await asUser(request(app).post('/api/account/history')).send({ client_id: 'local_1', dish_id: 'D001', source: 'wheel' });
@@ -108,6 +123,8 @@ describe('匿名账号与社区接口', () => {
     const rating = await asUser(request(app).post('/api/community/dishes/D001/rating')).send({ rating: 5 });
     expect(rating.status).toBe(200);
     expect(rating.body.data.rating_average).toBe(5);
+    const ratedHistory = await asUser(request(app).get('/api/account/history'));
+    expect(ratedHistory.body.data.data[0].user_rating).toBe(5);
     const rankings = await request(app).get('/api/community/rankings');
     expect(rankings.body.data.data[0].dish_id).toBe('D001');
   });

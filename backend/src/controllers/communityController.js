@@ -142,10 +142,10 @@ async function createComment(req, res, next) {
       content: content.trim(),
     });
     await socialRepository.bumpCommentCount(post.post_id, 1);
-    await socialRepository.addNotification({ recipient_id: post.anonymous_id, actor_id: actorId(req), type: 'comment', target_id: post.post_id, post_id: post.post_id, content: '评论了你的帖子' });
+    await socialRepository.addNotification({ recipient_id: post.anonymous_id, actor_id: actorId(req), type: 'comment', target_id: comment.comment_id, post_id: post.post_id, content: '评论了你的帖子', comment_content: comment.content });
     if (parent_id) {
       const parent = (await socialRepository.listComments(post.post_id)).find(item => item.comment_id === parent_id);
-      await socialRepository.addNotification({ recipient_id: parent?.anonymous_id, actor_id: actorId(req), type: 'reply', target_id: parent_id, post_id: post.post_id, content: '回复了你的评论' });
+      await socialRepository.addNotification({ recipient_id: parent?.anonymous_id, actor_id: actorId(req), type: 'reply', target_id: comment.comment_id, post_id: post.post_id, content: '回复了你的评论', comment_content: comment.content });
     }
     return success(res, comment, 201);
   } catch (error) { return next(error); }

@@ -46,9 +46,13 @@
       </view>
       <view v-else class="history-list">
         <view v-for="record in history" :key="record.history_id || record.id" class="soft-card history-row">
-          <view>
+          <view class="history-main">
             <text class="history-name">{{ dishName(record) }}</text>
             <text class="history-time">{{ formatDate(record.eaten_at || record.eatenAt) }}</text>
+            <view v-if="dishId(record)" class="history-rating">
+              <text class="rating-label">{{ record.user_rating ? '我的评分' : '给这顿评分' }}</text>
+              <text v-for="star in 5" :key="star" class="rating-star" :class="{ active: star <= record.user_rating }" @click="saveHistoryRating(record, star)">{{ ratingSavingId === (record.history_id || record.id) ? '·' : '★' }}</text>
+            </view>
           </view>
           <button class="delete-button" @click="removeRecord(record)">删除</button>
         </view>
@@ -69,6 +73,7 @@ import {
   ensureAccountSession,
   getAccount,
   getAccountHistory,
+  rateDish,
   updateAccount
 } from '../../services/api'
 import { getAnonymousIdentity, getHistory, getTodayStatus, removeHistoryRecord, resetAnonymousIdentity, STATUS_OPTIONS } from '../../services/localState'
@@ -78,6 +83,7 @@ const account = ref({ display_name: '匿名用户', avatar: '🍊' })
 const nickname = ref('匿名用户')
 const editingProfile = ref(false)
 const savingProfile = ref(false)
+const ratingSavingId = ref('')
 const todayStatus = ref(getTodayStatus())
 const history = ref(getHistory())
 const statusLabel = computed(() => STATUS_OPTIONS.find((item) => item.value === todayStatus.value?.status)?.label || '正常')
@@ -93,7 +99,10 @@ async function loadAccount() {
     const [profile, remoteHistory] = await Promise.all([getAccount(), getAccountHistory()])
     account.value = profile.account || account.value
     nickname.value = account.value.display_name || '匿名用户'
-    history.value = remoteHistory.data || []
+    const remote = remoteHistory.data || []
+    const remoteClientIds = new Set(remote.map(item => item.client_id).filter(Boolean))
+    history.value = [...remote, ...getHistory().filter(item => !remoteClientIds.has(item.id))]
+      .sort((a, b) => new Date(b.eaten_at || b.eatenAt) - new Date(a.eaten_at || a.eatenAt))
   } catch (error) {
     console.warn('[Account] 读取个人资料失败', error)
     history.value = getHistory()
@@ -125,6 +134,25 @@ function openAdmin() {
   uni.navigateTo({ url: '/pages/admin-login/admin-login' })
 }
 
+function dishId(record) {
+  return record.dish_id || record.dish_snapshot?.dish_id || record.dish?.dish_id
+}
+
+async function saveHistoryRating(record, stars) {
+  const id = dishId(record)
+  if (!id || ratingSavingId.value) return
+  ratingSavingId.value = record.history_id || record.id
+  try {
+    await rateDish(id, stars)
+    history.value = history.value.map(item => dishId(item) === id ? { ...item, user_rating: stars } : item)
+    uni.showToast({ title: `已评 ${stars} 星`, icon: 'success' })
+  } catch (error) {
+    uni.showToast({ title: error.message || '评分失败', icon: 'none' })
+  } finally {
+    ratingSavingId.value = ''
+  }
+}
+
 function removeRecord(record) {
   uni.showModal({
     title: '删除这条饭录？',
@@ -137,8 +165,9 @@ function removeRecord(record) {
         uni.showToast({ title: error.message || '删除失败', icon: 'none' })
         return
       }
-      if (record.id) history.value = removeHistoryRecord(record.id)
-      else history.value = history.value.filter(item => item.history_id !== record.history_id)
+      const clientId = record.id || record.client_id
+      if (clientId) removeHistoryRecord(clientId)
+      history.value = history.value.filter(item => item !== record)
     }
   })
 }
@@ -333,6 +362,12 @@ function formatDate(value) {
 .history-row {
   justify-content: space-between;
 }
+
+.history-main { flex: 1; min-width: 0; }
+.history-rating { display: flex; align-items: center; gap: 8rpx; margin-top: 14rpx; }
+.rating-label { margin-right: 6rpx; color: var(--muted); font-size: 21rpx; }
+.rating-star { color: #d9c4b5; font-size: 32rpx; line-height: 1; }
+.rating-star.active { color: var(--main); }
 
 .history-name,
 .history-time {

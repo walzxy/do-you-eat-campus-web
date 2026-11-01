@@ -46,6 +46,7 @@
 import { onLoad } from '@dcloudio/uni-app'
 import { ref } from 'vue'
 import DishDetailModal from '../../components/DishDetailModal.vue'
+import { syncHistoryRecord } from '../../services/api'
 import { fetchCandidates } from '../../services/dishService'
 import { addHistoryRecord, getTodayStatus } from '../../services/localState'
 
@@ -86,7 +87,8 @@ function closeDetail() {
 
 function confirmDish() {
   if (!featured.value) return
-  addHistoryRecord(featured.value)
+  const record = addHistoryRecord(featured.value)
+  syncHistoryRecord(record).catch(() => {})
   detailVisible.value = false
   uni.showToast({ title: '已记入饭录', icon: 'success' })
 }

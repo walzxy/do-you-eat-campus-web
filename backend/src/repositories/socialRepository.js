@@ -170,7 +170,11 @@ async function listHistory(anonymousId, { page = 1, pageSize = 30 } = {}) {
     .filter(item => item.anonymous_id === anonymousId)
     .sort((a, b) => new Date(b.eaten_at) - new Date(a.eaten_at));
   const start = (page - 1) * pageSize;
-  return { data: items.slice(start, start + pageSize), total: items.length, page, pageSize };
+  const pageItems = items.slice(start, start + pageSize);
+  const rated = await Promise.all(pageItems.map(item => item.dish_id
+    ? activeStore.findOne('ratings', { dish_id: item.dish_id, anonymous_id: anonymousId })
+    : null));
+  return { data: pageItems.map((item, index) => ({ ...item, user_rating: rated[index]?.rating || 0 })), total: items.length, page, pageSize };
 }
 
 async function addHistory(anonymousId, data) {
@@ -302,6 +306,7 @@ async function addNotification(data) {
     target_id: data.target_id,
     post_id: data.post_id || null,
     content: data.content,
+    comment_content: data.comment_content || null,
     read_at: null,
     created_at: now(),
   });
