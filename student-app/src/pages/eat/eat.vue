@@ -84,7 +84,7 @@ function openFeature(url) {
 }
 
 function openQuickTag(tag) {
-  uni.navigateTo({ url: `/pages/choose/choose?${tag.query}&auto=1` })
+  uni.navigateTo({ url: `/pages/choose/choose?${tag.query}&auto=1&quick=1&title=${encodeURIComponent(tag.label)}` })
 }
 </script>
 

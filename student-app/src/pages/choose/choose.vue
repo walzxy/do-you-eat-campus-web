@@ -5,6 +5,23 @@
       <text class="page-title">选一选</text>
       <text class="page-subtitle">把现在在意的条件告诉我，结果会直接来自菜品数据。</text>
 
+      <view v-if="quickMode" class="quick-result-head">
+        <text class="section-title">{{ quickTitle }}的菜品</text>
+        <text class="custom-budget-link" @click="quickMode = false">调整筛选条件 ›</text>
+      </view>
+
+      <view v-if="searched || quickMode" class="result-heading">
+        <text class="section-title">匹配结果</text>
+        <text class="section-caption">{{ loading ? '正在查找…' : `找到 ${results.length} 道可选菜品` }}</text>
+      </view>
+      <view v-if="error" class="error-card soft-card">{{ error }}</view>
+      <view v-if="!loading && !error && searched && !results.length" class="empty-card soft-card">没有匹配到菜品，可以放宽一个条件再试试。</view>
+      <template v-if="!loading && !error && searched">
+        <DishCard v-for="dish in results" :key="dish.dish_id" :dish="dish" @open="openDish" />
+      </template>
+
+      <view v-if="!quickMode">
+
       <view class="filter-section">
         <text class="filter-title">想吃什么</text>
         <input v-model="keyword" class="keyword-input" placeholder="输入菜名或关键词，例如：鸡蛋、面、盖饭" confirm-type="search" @confirm="search" />
@@ -41,15 +58,15 @@
         </view>
       </view>
 
-      <button class="primary-button search-button" :disabled="loading" @click="search">{{ loading ? '查找中…' : '开始筛选' }}</button>
-
-      <view class="result-heading">
-        <text class="section-title">匹配结果</text>
-        <text class="section-caption">{{ results.length ? `找到 ${results.length} 道可选菜品` : '还没有开始筛选' }}</text>
+      <view class="filter-section">
+        <text class="filter-title">菜品类型（可多选，满足其一即可）</text>
+        <view class="chip-list">
+          <text v-for="category in categories" :key="category" class="filter-chip" :class="{ active: selectedCategories.includes(category) }" @click="toggleCategory(category)">{{ category }}</text>
+        </view>
       </view>
-      <view v-if="error" class="error-card soft-card">{{ error }}</view>
-      <view v-if="!loading && !error && searched && !results.length" class="empty-card soft-card">没有匹配到菜品，可以放宽一个条件再试试。</view>
-      <DishCard v-if="!loading && !error && searched && results.length" v-for="dish in results" :key="dish.dish_id" :dish="dish" @open="openDish" />
+
+      <button class="primary-button search-button" :disabled="loading" @click="search">{{ loading ? '查找中…' : '开始筛选' }}</button>
+      </view>
     </view>
     <DishDetailModal
       :dish="selectedDish"
@@ -67,8 +84,8 @@ import { onLoad } from '@dcloudio/uni-app'
 import { ref } from 'vue'
 import DishCard from '../../components/DishCard.vue'
 import DishDetailModal from '../../components/DishDetailModal.vue'
-import { getCafeterias } from '../../services/api'
-import { fetchCandidates } from '../../services/dishService'
+import { getCafeterias, searchDishes } from '../../services/api'
+import { fetchCandidates, getCategories } from '../../services/dishService'
 import { addHistoryRecord, getTodayStatus } from '../../services/localState'
 
 const flavorOptions = ['清淡', '原味', '微辣', '香辣', '麻辣']
@@ -86,22 +103,26 @@ const flavor = ref('')
 const cafeteriaId = ref('')
 const cafeterias = ref([])
 const results = ref([])
+const categories = ref([])
+const selectedCategories = ref([])
+const quickMode = ref(false)
+const quickTitle = ref('快速找到')
 const selectedDish = ref(null)
 const detailVisible = ref(false)
 const loading = ref(false)
 const searched = ref(false)
 const error = ref('')
 onLoad(async (query = {}) => {
+  quickMode.value = query.quick === '1'
+  quickTitle.value = query.title ? decodeURIComponent(query.title) : '快速找到'
   keyword.value = query.keyword || ''
   budget.value = query.budget || ''
   customBudget.value = budget.value !== '' && !budgetOptions.some(option => option.value === budget.value)
   flavor.value = query.flavor || ''
   cafeteriaId.value = query.cafeteriaId || ''
-  try {
-    cafeterias.value = await getCafeterias()
-  } catch {
-    cafeterias.value = []
-  }
+  const [cafeteriaResult, dishResult] = await Promise.allSettled([getCafeterias(), searchDishes()])
+  cafeterias.value = cafeteriaResult.status === 'fulfilled' ? cafeteriaResult.value : []
+  categories.value = dishResult.status === 'fulfilled' ? getCategories(dishResult.value) : []
   if (query.auto === '1') await search()
 })
 
@@ -114,19 +135,27 @@ async function search() {
   searched.value = true
   error.value = ''
   try {
-    results.value = await fetchCandidates({
+    const found = await fetchCandidates({
       status: getTodayStatus()?.status || 'normal',
       keyword: keyword.value.trim(),
       budget: budget.value,
       flavor: flavor.value.trim(),
       cafeteriaId: cafeteriaId.value
     })
+    results.value = selectedCategories.value.length ? found.filter(dish => selectedCategories.value.includes(dish.category_major)) : found
+    uni.pageScrollTo({ scrollTop: 0, duration: 250 })
   } catch (requestError) {
     results.value = []
     error.value = requestError.message || '检索失败，请稍后重试'
   } finally {
     loading.value = false
   }
+}
+
+function toggleCategory(category) {
+  selectedCategories.value = selectedCategories.value.includes(category)
+    ? selectedCategories.value.filter(item => item !== category)
+    : [...selectedCategories.value, category]
 }
 
 function selectBudget(value) {
@@ -225,6 +254,7 @@ function normalizeBudget() {
 .result-heading {
   margin: 32rpx 0 22rpx;
 }
+.quick-result-head { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; margin-top: 30rpx; }
 
 .empty-card,
 .error-card {

@@ -121,6 +121,14 @@ async function updateAccount(anonymousId, patch) {
   return getAccount(anonymousId);
 }
 
+async function withCurrentAuthor(item) {
+  if (!item || !item.anonymous_id) return item;
+  const account = await getAccount(item.anonymous_id);
+  return account && account.status !== 'deleted'
+    ? { ...item, author_name: account.display_name, author_avatar: account.avatar }
+    : { ...item, author_name: '已注销用户', author_avatar: '👤' };
+}
+
 async function ensureAccount(anonymousId) {
   const existing = await getAccount(anonymousId);
   if (existing) return existing;
@@ -196,11 +204,11 @@ async function listPosts({ page = 1, pageSize = 20, keyword = '' } = {}) {
     })
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   const start = (page - 1) * pageSize;
-  return { data: items.slice(start, start + pageSize), total: items.length, page, pageSize };
+  return { data: await Promise.all(items.slice(start, start + pageSize).map(withCurrentAuthor)), total: items.length, page, pageSize };
 }
 
 async function getPost(postId) {
-  return activeStore.findOne('posts', { post_id: postId });
+  return withCurrentAuthor(await activeStore.findOne('posts', { post_id: postId }));
 }
 
 async function createPost(data) {
@@ -244,9 +252,10 @@ async function bumpCommentCount(postId, delta = 1) {
 }
 
 async function listComments(postId) {
-  return (await activeStore.all('comments'))
+  const items = (await activeStore.all('comments'))
     .filter(item => item.post_id === postId && item.status !== 'deleted')
     .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  return Promise.all(items.map(withCurrentAuthor));
 }
 
 async function getComment(commentId) {

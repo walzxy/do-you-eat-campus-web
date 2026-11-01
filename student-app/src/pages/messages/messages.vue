@@ -13,7 +13,7 @@
       <view v-for="item in notifications" :key="item.notification_id" class="message-row soft-card" :class="{ unread: !item.read_at }" @click="readMessage(item)">
         <view class="message-icon">{{ iconFor(item.type) }}</view>
         <view class="message-copy">
-          <text class="message-content">{{ item.content }}</text>
+          <text class="message-content">{{ item.actor_name || '匿名用户' }}<text v-if="item.actor_short_id" class="message-id">（{{ item.actor_short_id }}）</text>{{ item.content }}</text>
           <text class="message-time">{{ formatTime(item.created_at) }}</text>
         </view>
         <text v-if="!item.read_at" class="unread-dot" />
@@ -122,6 +122,7 @@ function formatTime(value) {
   color: var(--text);
   font-size: 24rpx;
 }
+.message-id { color: var(--muted); font-size: 20rpx; }
 
 .message-time {
   margin-top: 8rpx;

@@ -8,14 +8,17 @@
       <view class="wheel-board soft-card">
         <view class="wheel-stage">
           <text class="wheel-pointer">▼</text>
-          <view class="wheel-ring" :style="{ transform: `rotate(${rotation}deg)`, transition: spinning ? 'transform 3200ms cubic-bezier(.18,.82,.16,1)' : 'none' }">
-            <text v-for="(dish, index) in wheelDishes" :key="dish.dish_id" class="wheel-label" :style="labelStyle(index)">{{ shortTitle(dish) }}</text>
+          <view class="wheel-ring" :style="{ background: wheelBackground, transform: `rotate(${rotation}deg)`, transition: spinning ? 'transform 3200ms cubic-bezier(.18,.82,.16,1)' : 'none' }">
+            <text v-for="(dish, index) in wheelDishes" :key="dish.dish_id" class="wheel-label" :style="labelStyle(index)">{{ index + 1 }}</text>
             <view class="wheel-core">🍜</view>
           </view>
         </view>
         <text class="wheel-caption">{{ result?.title || '准备好了吗？' }}</text>
-        <text class="wheel-count">{{ loading ? '正在读取菜品…' : `从 ${candidates.length} 道校园美食中，为你挑一道` }}</text>
+        <text class="wheel-count">{{ loading ? '正在读取菜品…' : `本轮 ${wheelDishes.length} 道菜 · 从 ${candidates.length} 道候选中选出` }}</text>
       </view>
+      <scroll-view v-if="wheelDishes.length" scroll-y="true" class="wheel-menu soft-card">
+        <text v-for="(dish, index) in wheelDishes" :key="dish.dish_id" class="wheel-menu-item">{{ index + 1 }} · {{ dish.title }}</text>
+      </scroll-view>
 
       <view v-if="error" class="error-card soft-card">{{ error }}</view>
       <button class="primary-button spin-button" :disabled="loading || spinning || !wheelDishes.length" @click="spin">
@@ -37,13 +40,19 @@
 
 <script setup>
 import { onLoad, onUnload } from '@dcloudio/uni-app'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import DishDetailModal from '../../components/DishDetailModal.vue'
 import { addHistoryRecord, getTodayStatus } from '../../services/localState'
 import { fetchCandidates } from '../../services/dishService'
 
 const candidates = ref([])
 const wheelDishes = ref([])
+const wheelBackground = computed(() => {
+  const count = wheelDishes.value.length || 1
+  const step = 360 / count
+  const stops = wheelDishes.value.map((_, index) => `${index % 2 ? '#ffd19e' : '#fff0d8'} ${index * step}deg ${(index + 1) * step}deg`)
+  return `conic-gradient(${stops.length ? stops.join(', ') : '#fff0d8'})`
+})
 const rotation = ref(0)
 const result = ref(null)
 const detailVisible = ref(false)
@@ -72,25 +81,20 @@ async function reload() {
 
 function prepareWheel(excludedId = '') {
   const pool = candidates.value.filter(dish => dish.dish_id !== excludedId)
-  const source = pool.length >= 8 ? pool : candidates.value
+  const source = pool.length >= 50 ? pool : candidates.value
   const shuffled = [...source]
   for (let index = shuffled.length - 1; index > 0; index--) {
     const other = Math.floor(Math.random() * (index + 1))
     ;[shuffled[index], shuffled[other]] = [shuffled[other], shuffled[index]]
   }
-  wheelDishes.value = shuffled.slice(0, 8)
+  wheelDishes.value = shuffled.slice(0, 50)
   rotation.value = 0
 }
 
-function shortTitle(dish) {
-  const name = dish.title || dish.dish_name || ''
-  return name.length > 5 ? `${name.slice(0, 5)}…` : name
-}
-
 function labelStyle(index) {
-  const angle = (index + 0.5) * 45 - 90
+  const angle = (index + 0.5) * (360 / wheelDishes.value.length) - 90
   const radians = angle * Math.PI / 180
-  return { left: `${50 + 32 * Math.cos(radians)}%`, top: `${50 + 32 * Math.sin(radians)}%` }
+  return { left: `${50 + 41 * Math.cos(radians)}%`, top: `${50 + 41 * Math.sin(radians)}%` }
 }
 
 function spin() {
@@ -101,7 +105,7 @@ function spin() {
   const possibleIndexes = wheelDishes.value.map((_, index) => index).filter(index => wheelDishes.value[index].dish_id !== previousResultId)
   const indexes = possibleIndexes.length ? possibleIndexes : wheelDishes.value.map((_, index) => index)
   const selectedIndex = indexes[Math.floor(Math.random() * indexes.length)]
-  const sectorCenter = (selectedIndex + 0.5) * 45
+  const sectorCenter = (selectedIndex + 0.5) * (360 / wheelDishes.value.length)
   const currentAngle = ((rotation.value % 360) + 360) % 360
   const delta = (360 - sectorCenter - currentAngle + 360) % 360
   rotation.value += 360 * 5 + delta
@@ -157,7 +161,9 @@ function spinAgain() {
   box-shadow: 0 18rpx 30rpx rgba(233, 111, 36, 0.16);
 }
 
-.wheel-label { position: absolute; width: 100rpx; transform: translate(-50%, -50%); color: #6a3b21; font-size: 20rpx; font-weight: 750; line-height: 1.25; text-align: center; }
+.wheel-label { position: absolute; width: 22rpx; transform: translate(-50%, -50%); color: #6a3b21; font-size: 13rpx; font-weight: 750; line-height: 1; text-align: center; }
+.wheel-menu { box-sizing: border-box; height: 220rpx; margin-top: 18rpx; padding: 12rpx 20rpx; }
+.wheel-menu-item { display: block; padding: 6rpx 0; color: var(--muted); font-size: 22rpx; }
 
 .wheel-core {
   display: flex;

@@ -19,17 +19,12 @@
       </view>
 
       <view class="section-heading">
-        <text class="section-title">口味画像</text>
-        <text class="section-caption">选择常吃口味，也可以记录自己的忌口</text>
+        <text class="section-title">个人设置</text>
       </view>
-      <view class="taste-card soft-card">
-        <text class="taste-label">喜欢的口味</text>
-        <view class="chip-list">
-          <text v-for="flavor in flavorOptions" :key="flavor" class="taste-chip" :class="{ active: taste.flavors.includes(flavor) }" @click="toggleFlavor(flavor)">{{ flavor }}</text>
-        </view>
-        <text class="taste-label avoid-label">忌口</text>
-        <input v-model="avoidInput" class="profile-input" placeholder="例如：香菜、花生，不填写也可以" />
-        <button class="save-button" :disabled="savingTaste" @click="saveTasteProfile">{{ savingTaste ? '保存中…' : '保存口味画像' }}</button>
+      <view class="soft-card setting-row" @click="openTasteProfile">
+        <text class="setting-icon">🍽️</text>
+        <text class="setting-label">口味画像与忌口</text>
+        <text class="choice-arrow">›</text>
       </view>
 
       <view class="section-heading">
@@ -74,8 +69,7 @@ import {
   ensureAccountSession,
   getAccount,
   getAccountHistory,
-  updateAccount,
-  updateTaste
+  updateAccount
 } from '../../services/api'
 import { getAnonymousIdentity, getHistory, getTodayStatus, removeHistoryRecord, resetAnonymousIdentity, STATUS_OPTIONS } from '../../services/localState'
 
@@ -84,10 +78,6 @@ const account = ref({ display_name: '匿名用户', avatar: '🍊' })
 const nickname = ref('匿名用户')
 const editingProfile = ref(false)
 const savingProfile = ref(false)
-const savingTaste = ref(false)
-const flavorOptions = ['清淡', '原味', '微辣', '香辣', '麻辣']
-const taste = ref({ flavors: [], avoid: [] })
-const avoidInput = ref('')
 const todayStatus = ref(getTodayStatus())
 const history = ref(getHistory())
 const statusLabel = computed(() => STATUS_OPTIONS.find((item) => item.value === todayStatus.value?.status)?.label || '正常')
@@ -103,8 +93,6 @@ async function loadAccount() {
     const [profile, remoteHistory] = await Promise.all([getAccount(), getAccountHistory()])
     account.value = profile.account || account.value
     nickname.value = account.value.display_name || '匿名用户'
-    taste.value = profile.taste || { flavors: [], avoid: [] }
-    avoidInput.value = taste.value.avoid.join('、')
     history.value = remoteHistory.data || []
   } catch (error) {
     console.warn('[Account] 读取个人资料失败', error)
@@ -125,26 +113,8 @@ async function saveProfile() {
   }
 }
 
-function toggleFlavor(flavor) {
-  const flavors = new Set(taste.value.flavors)
-  if (flavors.has(flavor)) flavors.delete(flavor)
-  else flavors.add(flavor)
-  taste.value.flavors = [...flavors]
-}
-
-async function saveTasteProfile() {
-  savingTaste.value = true
-  try {
-    taste.value = await updateTaste({
-      flavors: taste.value.flavors,
-      avoid: avoidInput.value.split(/[、,，]/).map(item => item.trim()).filter(Boolean)
-    })
-    uni.showToast({ title: '口味画像已保存', icon: 'success' })
-  } catch (error) {
-    uni.showToast({ title: error.message || '保存失败', icon: 'none' })
-  } finally {
-    savingTaste.value = false
-  }
+function openTasteProfile() {
+  uni.navigateTo({ url: '/pages/taste/taste' })
 }
 
 function editStatus() {

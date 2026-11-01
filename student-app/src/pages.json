@@ -55,6 +55,12 @@
       }
     },
     {
+      "path": "pages/taste/taste",
+      "style": {
+        "navigationBarTitleText": "口味画像"
+      }
+    },
+    {
       "path": "pages/admin-login/admin-login",
       "style": {
         "navigationStyle": "custom"

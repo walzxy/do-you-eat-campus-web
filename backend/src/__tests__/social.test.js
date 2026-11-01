@@ -64,14 +64,29 @@ describe('匿名账号与社区接口', () => {
     const created = await asUser(request(app).post('/api/community/posts')).send({ content: '来吃饭' });
     const postId = created.body.data.post_id;
     await request(app).post('/api/account/session').set('X-Anonymous-Id', USER_B).send({ anonymous_id: USER_B });
+    await asUser(request(app).patch('/api/account/me'), USER_B).send({ display_name: '小饭友' });
 
     const liked = await asUser(request(app).post(`/api/community/posts/${postId}/like`), USER_B);
     expect(liked.body.data.active).toBe(true);
     const notice = await asUser(request(app).get('/api/notifications'), USER_A);
     expect(notice.body.data.unread).toBe(1);
+    expect(notice.body.data.data[0].actor_name).toBe('小饭友');
+    expect(notice.body.data.data[0].actor_short_id).toBe(USER_B.slice(-6));
 
     const unliked = await asUser(request(app).post(`/api/community/posts/${postId}/like`), USER_B);
     expect(unliked.body.data.active).toBe(false);
+  });
+
+  it('修改昵称后，旧帖子和旧评论显示当前昵称', async () => {
+    await request(app).post('/api/account/session').set('X-Anonymous-Id', USER_A).send({ anonymous_id: USER_A });
+    const post = await asUser(request(app).post('/api/community/posts')).send({ content: '先发帖' });
+    await asUser(request(app).post(`/api/community/posts/${post.body.data.post_id}/comments`)).send({ content: '先评论' });
+    await asUser(request(app).patch('/api/account/me')).send({ display_name: '新昵称' });
+    const list = await request(app).get('/api/community/posts');
+    const detail = await request(app).get(`/api/community/posts/${post.body.data.post_id}`);
+    expect(list.body.data.data[0].author_name).toBe('新昵称');
+    expect(detail.body.data.author_name).toBe('新昵称');
+    expect(detail.body.data.comments[0].author_name).toBe('新昵称');
   });
 
   it('评论支持多层回复', async () => {

@@ -34,15 +34,16 @@
       </view>
 
       <view v-if="activeTab === 'rankings'" class="ranking-list">
+        <button class="rating-entry" @click="goChoose">选一道菜评分 ›</button>
         <view v-if="rankingLoading" class="empty-card soft-card">正在读取评分榜…</view>
-        <view v-else-if="!rankings.length" class="empty-card soft-card">还没有评分，先去菜品详情页评一颗星吧。</view>
-        <view v-for="(item, index) in rankings" :key="item.dish_id" class="ranking-card soft-card">
+        <view v-else-if="!rankings.length" class="empty-card soft-card">还没有评分。选一道菜，打开详情即可评 1–5 星。</view>
+        <view v-for="(item, index) in rankings" :key="item.dish_id" class="ranking-card soft-card" @click="openRating(item.dish_id)">
           <text class="ranking-index">{{ index + 1 }}</text>
           <view class="ranking-main">
             <text class="ranking-name">{{ item.dish?.dish_name || '未命名菜品' }}</text>
             <text class="ranking-meta">{{ item.dish?.cafeteria_name || '食堂待补充' }} · {{ item.rating_count }} 人评分</text>
           </view>
-          <text class="ranking-score">{{ Number(item.rating_average || 0).toFixed(1) }} ★</text>
+          <text class="ranking-score">{{ Number(item.rating_average || 0).toFixed(1) }} ★ · 去评分 ›</text>
         </view>
       </view>
 
@@ -64,7 +65,7 @@
           <text v-if="post.anonymous_id === anonymousId" class="delete-post" @click="removePost(post)">删除</text>
         </view>
         <text class="post-content">{{ post.content }}</text>
-        <view v-if="post.dish_snapshot" class="post-dish-card">
+        <view v-if="post.dish_snapshot" class="post-dish-card" @click="openRating(post.dish_snapshot.dish_id)">
           <text class="post-dish-icon">🍜</text>
           <view>
             <text class="post-dish-name">{{ post.dish_snapshot.dish_name }}</text>
@@ -135,6 +136,14 @@ onShow(() => {
 function switchTab(tab) {
   activeTab.value = tab
   if (tab === 'rankings' && !rankings.value.length) loadRankings()
+}
+
+function openRating(dishId) {
+  if (dishId) uni.navigateTo({ url: `/pages/dish-detail/dish-detail?dishId=${encodeURIComponent(dishId)}` })
+}
+
+function goChoose() {
+  uni.navigateTo({ url: '/pages/choose/choose' })
 }
 
 async function loadPosts() {
@@ -336,6 +345,8 @@ function formatTime(value) {
   display: flex;
   align-items: center;
 }
+
+.rating-entry { width: 100%; margin-top: 24rpx; border: 2rpx solid var(--border); border-radius: 22rpx; background: var(--light-orange); color: var(--dark-orange); font-size: 25rpx; font-weight: 700; }
 
 .ranking-index {
   width: 46rpx;
