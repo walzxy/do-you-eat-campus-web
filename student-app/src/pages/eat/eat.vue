@@ -5,7 +5,7 @@
         <view>
           <text class="eyebrow">今天吃了么</text>
           <text class="page-title">今天想吃点什么？</text>
-          <text class="page-subtitle">根据你的今日状态，慢慢挑一顿合适的饭。</text>
+          <text class="page-subtitle">选个方向，今天这顿就有着落。</text>
         </view>
         <view class="status-pill" @click="editStatus">
           <text class="status-pill-dot" />
@@ -13,17 +13,18 @@
         </view>
       </view>
 
-      <view class="quick-card">
-        <view class="quick-icon">🍚</view>
-        <view class="quick-copy">
-          <text class="quick-title">从一顿合适的饭开始</text>
-        <text class="quick-description">从下面选一种方式开始。</text>
-        </view>
+      <view class="quick-section">
+        <text class="quick-heading">快速找一顿</text>
+        <scroll-view scroll-x="true" class="quick-scroll">
+          <view class="quick-tags">
+            <text v-for="tag in quickTags" :key="tag.label" class="quick-tag" @click="openQuickTag(tag)">{{ tag.label }}</text>
+          </view>
+        </scroll-view>
       </view>
 
       <view class="section-heading">
         <text class="section-title">选择方式</text>
-        <text class="section-caption">三种轻松入口，先从你现在最想玩的开始</text>
+        <text class="section-caption">想随机，还是按条件慢慢挑？</text>
       </view>
 
       <view class="choice-list">
@@ -63,6 +64,12 @@ import { getTodayStatus, STATUS_OPTIONS } from '../../services/localState'
 
 const todayStatus = ref(getTodayStatus())
 const statusLabel = computed(() => STATUS_OPTIONS.find((item) => item.value === todayStatus.value?.status)?.label || '正常')
+const quickTags = [
+  { label: '15 元内', query: 'budget=15' },
+  { label: '来碗热汤', query: 'keyword=%E6%B1%A4' },
+  { label: '二食堂', query: 'cafeteriaId=C002' },
+  { label: '想吃肉', query: 'keyword=%E8%82%89' }
+]
 
 onShow(() => {
   todayStatus.value = getTodayStatus()
@@ -74,6 +81,10 @@ function editStatus() {
 
 function openFeature(url) {
   uni.navigateTo({ url })
+}
+
+function openQuickTag(tag) {
+  uni.navigateTo({ url: `/pages/choose/choose?${tag.query}&auto=1` })
 }
 </script>
 
@@ -106,54 +117,20 @@ function openFeature(url) {
   background: var(--main);
 }
 
-.quick-card {
-  display: flex;
-  align-items: center;
-  margin-top: 44rpx;
-  padding: 26rpx;
-  border: 2rpx dashed rgba(242, 215, 190, 0.9);
-  border-radius: 30rpx;
-  background: rgba(255, 255, 255, 0.46);
-}
+.quick-section { margin-top: 38rpx; }
+.quick-heading { display: block; color: var(--text); font-size: 27rpx; font-weight: 800; }
+.quick-scroll { width: 100%; margin-top: 16rpx; white-space: nowrap; }
+.quick-tags { display: inline-flex; gap: 12rpx; padding-bottom: 6rpx; }
+.quick-tag { padding: 14rpx 20rpx; border: 2rpx solid var(--border); border-radius: 28rpx; background: #fff; color: var(--dark-orange); font-size: 24rpx; }
+.quick-tag:active { background: var(--light-orange); }
 
-.quick-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 92rpx;
-  height: 92rpx;
-  border-radius: 30rpx;
-  background: #ffe1bd;
-  font-size: 48rpx;
-}
-
-.quick-copy {
-  flex: 1;
-  margin-left: 20rpx;
-}
-
-.quick-title,
-.quick-description,
 .choice-title,
 .choice-description {
   display: block;
 }
 
-.quick-title {
-  color: var(--text);
-  font-size: 27rpx;
-  font-weight: 800;
-}
-
-.quick-description {
-  margin-top: 8rpx;
-  color: var(--muted);
-  font-size: 21rpx;
-  line-height: 1.55;
-}
-
 .section-heading {
-  margin-top: 42rpx;
+  margin-top: 34rpx;
 }
 
 .choice-list {

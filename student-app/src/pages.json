@@ -74,16 +74,16 @@
     "borderStyle": "white",
     "list": [
       {
-        "pagePath": "pages/messages/messages",
-        "text": "消息"
-      },
-      {
         "pagePath": "pages/eat/eat",
         "text": "吃什么"
       },
       {
         "pagePath": "pages/community/community",
         "text": "社区"
+      },
+      {
+        "pagePath": "pages/messages/messages",
+        "text": "消息"
       },
       {
         "pagePath": "pages/profile/profile",

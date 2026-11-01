@@ -8,24 +8,29 @@
       <view class="filter-section">
         <text class="filter-title">想吃什么</text>
         <input v-model="keyword" class="keyword-input" placeholder="输入菜名或关键词，例如：鸡蛋、面、盖饭" confirm-type="search" @confirm="search" />
+        <view class="chip-list compact-chips">
+          <text v-for="word in keywordOptions" :key="word" class="filter-chip" :class="{ active: keyword === word }" @click="keyword = keyword === word ? '' : word">{{ word }}</text>
+        </view>
       </view>
 
       <view class="filter-section">
         <text class="filter-title">预算上限</text>
-        <view class="budget-control">
-          <button class="budget-step" :disabled="!budget || Number(budget) <= 0" @click="decreaseBudget">−</button>
-          <input v-model="budget" class="budget-input" type="number" min="0" step="1" placeholder="不限" confirm-type="search" @input="normalizeBudget" @confirm="search" />
-          <text class="budget-unit">元</text>
-          <button class="budget-step" @click="increaseBudget">＋</button>
+        <view class="chip-list">
+          <text v-for="option in budgetOptions" :key="option.label" class="filter-chip" :class="{ active: !customBudget && budget === option.value }" @click="selectBudget(option.value)">{{ option.label }}</text>
         </view>
-        <text class="filter-hint">将比较菜品的最高价格</text>
+        <input v-if="customBudget" v-model="budget" class="custom-budget" type="number" placeholder="输入自定义预算上限（元）" @input="normalizeBudget" />
+        <text v-else class="custom-budget-link" @click="customBudget = true; budget = ''">自定义金额 ›</text>
+        <text class="filter-hint">按菜品最高价格筛选</text>
       </view>
 
       <view class="filter-section">
         <text class="filter-title">食堂</text>
-        <picker :range="cafeterias" range-key="cafeteria_name" @change="onCafeteriaChange">
-          <view class="picker-value">{{ cafeteriaLabel }} <text>⌄</text></view>
-        </picker>
+        <scroll-view scroll-x="true" class="cafeteria-scroll">
+          <view class="cafeteria-list">
+            <text class="filter-chip" :class="{ active: !cafeteriaId }" @click="cafeteriaId = ''">全部</text>
+            <text v-for="item in cafeterias" :key="item.cafeteria_id" class="filter-chip" :class="{ active: cafeteriaId === item.cafeteria_id }" @click="cafeteriaId = item.cafeteria_id">{{ item.cafeteria_name }}</text>
+          </view>
+        </scroll-view>
       </view>
 
       <view class="filter-section">
@@ -59,7 +64,7 @@
 
 <script setup>
 import { onLoad } from '@dcloudio/uni-app'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import DishCard from '../../components/DishCard.vue'
 import DishDetailModal from '../../components/DishDetailModal.vue'
 import { getCafeterias } from '../../services/api'
@@ -67,7 +72,15 @@ import { fetchCandidates } from '../../services/dishService'
 import { addHistoryRecord, getTodayStatus } from '../../services/localState'
 
 const flavorOptions = ['清淡', '原味', '微辣', '香辣', '麻辣']
+const keywordOptions = ['鸡', '面', '盖饭', '汤']
+const budgetOptions = [
+  { label: '不限', value: '' },
+  { label: '10 元内', value: '10' },
+  { label: '15 元内', value: '15' },
+  { label: '20 元内', value: '20' }
+]
 const budget = ref('')
+const customBudget = ref(false)
 const keyword = ref('')
 const flavor = ref('')
 const cafeteriaId = ref('')
@@ -78,21 +91,25 @@ const detailVisible = ref(false)
 const loading = ref(false)
 const searched = ref(false)
 const error = ref('')
-const cafeteriaLabel = computed(() => cafeterias.value.find((item) => item.cafeteria_id === cafeteriaId.value)?.cafeteria_name || '全部食堂')
-
-onLoad(async () => {
+onLoad(async (query = {}) => {
+  keyword.value = query.keyword || ''
+  budget.value = query.budget || ''
+  customBudget.value = budget.value !== '' && !budgetOptions.some(option => option.value === budget.value)
+  flavor.value = query.flavor || ''
+  cafeteriaId.value = query.cafeteriaId || ''
   try {
     cafeterias.value = await getCafeterias()
   } catch {
     cafeterias.value = []
   }
+  if (query.auto === '1') await search()
 })
 
-function onCafeteriaChange(event) {
-  cafeteriaId.value = cafeterias.value[Number(event.detail.value)]?.cafeteria_id || ''
-}
-
 async function search() {
+  if (customBudget.value && !budget.value) {
+    error.value = '请填写自定义预算金额'
+    return
+  }
   loading.value = true
   searched.value = true
   error.value = ''
@@ -112,6 +129,11 @@ async function search() {
   }
 }
 
+function selectBudget(value) {
+  budget.value = value
+  customBudget.value = false
+}
+
 function openDish(dish) {
   selectedDish.value = dish
   detailVisible.value = true
@@ -129,15 +151,6 @@ function confirmDish() {
   uni.showToast({ title: '已记入饭录', icon: 'success' })
 }
 
-function increaseBudget() {
-  budget.value = String(Math.max(0, Math.floor(Number(budget.value) || 0) + 1))
-}
-
-function decreaseBudget() {
-  const next = Math.max(0, Math.floor(Number(budget.value) || 0) - 1)
-  budget.value = next ? String(next) : ''
-}
-
 function normalizeBudget() {
   if (budget.value === '') return
   const value = Number(budget.value)
@@ -146,9 +159,7 @@ function normalizeBudget() {
 </script>
 
 <style scoped>
-.filter-section {
-  margin-top: 34rpx;
-}
+.filter-section { margin-top: 24rpx; }
 
 .filter-title {
   display: block;
@@ -180,13 +191,12 @@ function normalizeBudget() {
   font-weight: 700;
 }
 
-.picker-value,
 .keyword-input,
-.budget-control {
+.custom-budget {
   box-sizing: border-box;
   width: 100%;
   min-height: 78rpx;
-  margin-top: 16rpx;
+  margin-top: 12rpx;
   padding: 20rpx 22rpx;
   border: 2rpx solid var(--border);
   border-radius: 24rpx;
@@ -195,46 +205,10 @@ function normalizeBudget() {
   font-size: 25rpx;
 }
 
-.budget-control {
-  display: flex;
-  align-items: center;
-  padding: 8rpx 10rpx;
-}
-
-.budget-step {
-  width: 62rpx;
-  height: 58rpx;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 18rpx;
-  background: var(--light-orange);
-  color: var(--dark-orange);
-  font-size: 34rpx;
-  line-height: 58rpx;
-}
-
-.budget-step[disabled] {
-  opacity: 0.45;
-}
-
-.budget-input {
-  flex: 1;
-  min-height: 58rpx;
-  margin: 0 8rpx;
-  padding: 0 8rpx;
-  border: 0;
-  background: transparent;
-  color: var(--text);
-  font-size: 26rpx;
-  text-align: center;
-}
-
-.budget-unit {
-  margin-right: 10rpx;
-  color: var(--muted);
-  font-size: 24rpx;
-}
+.custom-budget-link { display: block; margin-top: 14rpx; color: var(--dark-orange); font-size: 23rpx; }
+.cafeteria-scroll { width: 100%; margin-top: 14rpx; white-space: nowrap; }
+.cafeteria-list { display: inline-flex; gap: 12rpx; padding-bottom: 5rpx; }
+.compact-chips { margin-top: 10rpx; }
 
 .filter-hint {
   display: block;
@@ -243,18 +217,13 @@ function normalizeBudget() {
   font-size: 21rpx;
 }
 
-.picker-value {
-  display: flex;
-  justify-content: space-between;
-}
-
 .search-button {
   width: 100%;
-  margin-top: 40rpx;
+  margin-top: 26rpx;
 }
 
 .result-heading {
-  margin: 52rpx 0 22rpx;
+  margin: 32rpx 0 22rpx;
 }
 
 .empty-card,
