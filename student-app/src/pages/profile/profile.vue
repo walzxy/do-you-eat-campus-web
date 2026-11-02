@@ -46,6 +46,7 @@
       </view>
       <view v-else class="history-list">
         <view v-for="record in history" :key="record.history_id || record.id" class="soft-card history-row">
+          <view class="history-icon">🍜</view>
           <view class="history-main">
             <text class="history-name">{{ dishName(record) }}</text>
             <text class="history-time">{{ formatDate(record.eaten_at || record.eatenAt) }}</text>
@@ -203,8 +204,9 @@ function formatDate(value) {
 .profile-card {
   display: flex;
   align-items: center;
-  margin-top: 44rpx;
-  padding: 28rpx;
+  margin-top: 34rpx;
+  padding: 24rpx;
+  background: #fffdf9;
 }
 
 .profile-subtitle {
@@ -330,8 +332,9 @@ function formatDate(value) {
 .history-row {
   display: flex;
   align-items: center;
-  margin-top: 20rpx;
-  padding: 24rpx;
+  margin-top: 16rpx;
+  padding: 20rpx;
+  background: #fffdf9;
 }
 
 .setting-icon {
@@ -361,8 +364,10 @@ function formatDate(value) {
 
 .history-row {
   justify-content: space-between;
+  gap: 14rpx;
 }
 
+.history-icon { display: flex; flex: 0 0 66rpx; align-items: center; justify-content: center; width: 66rpx; height: 66rpx; border-radius: 20rpx; background: var(--light-orange); font-size: 34rpx; }
 .history-main { flex: 1; min-width: 0; }
 .history-rating { display: flex; align-items: center; gap: 8rpx; margin-top: 14rpx; }
 .rating-label { margin-right: 6rpx; color: var(--muted); font-size: 21rpx; }

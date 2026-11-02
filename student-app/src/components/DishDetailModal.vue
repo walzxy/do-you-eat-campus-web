@@ -82,8 +82,8 @@ function locationText(dish) {
   max-height: 84vh;
   overflow-y: auto;
   padding: 28rpx 28rpx calc(32rpx + env(safe-area-inset-bottom));
-  border-radius: 34rpx 34rpx 0 0;
-  background: #fffaf5;
+  border-radius: 28rpx 28rpx 0 0;
+  background: #fffdf9;
 }
 
 .modal-topbar,
@@ -123,8 +123,8 @@ function locationText(dish) {
   justify-content: center;
   width: 112rpx;
   height: 112rpx;
-  border-radius: 34rpx;
-  background: #ffe1bd;
+  border-radius: 26rpx;
+  background: #fff0df;
   font-size: 54rpx;
 }
 
@@ -174,7 +174,7 @@ function locationText(dish) {
   margin-top: 22rpx;
   padding: 4rpx 18rpx;
   border-radius: 22rpx;
-  background: #fff4e8;
+  background: #fff5e9;
 }
 
 .modal-info-row {
@@ -203,7 +203,7 @@ function locationText(dish) {
 .modal-primary {
   flex: 1;
   margin: 0;
-  border-radius: 22rpx;
+  border-radius: 18rpx;
   font-size: 25rpx;
 }
 
@@ -214,8 +214,8 @@ function locationText(dish) {
 }
 
 .modal-primary {
-  border: 2rpx solid var(--dark-orange);
-  background: var(--dark-orange);
+  border: 2rpx solid var(--main);
+  background: var(--main);
   color: #fff;
 }
 </style>

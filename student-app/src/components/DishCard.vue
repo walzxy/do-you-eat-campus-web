@@ -25,8 +25,8 @@ defineEmits(['open'])
 .dish-card {
   display: flex;
   align-items: center;
-  margin-bottom: 18rpx;
-  padding: 22rpx;
+  margin-bottom: 14rpx;
+  padding: 18rpx;
 }
 
 .dish-art {
@@ -36,8 +36,8 @@ defineEmits(['open'])
   justify-content: center;
   width: 86rpx;
   height: 86rpx;
-  border-radius: 28rpx;
-  background: #ffe6c9;
+  border-radius: 22rpx;
+  background: #fff0df;
   font-size: 42rpx;
 }
 

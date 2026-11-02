@@ -90,8 +90,9 @@ async function shareToCommunity() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 44rpx;
-  padding: 42rpx 24rpx;
+  margin-top: 28rpx;
+  padding: 34rpx 24rpx;
+  background: #fffdf9;
 }
 
 .detail-art {
@@ -100,8 +101,8 @@ async function shareToCommunity() {
   justify-content: center;
   width: 150rpx;
   height: 150rpx;
-  border-radius: 48rpx;
-  background: #ffe1bd;
+  border-radius: 34rpx;
+  background: #fff0df;
   font-size: 72rpx;
 }
 
@@ -121,8 +122,9 @@ async function shareToCommunity() {
 }
 
 .detail-info {
-  margin-top: 22rpx;
+  margin-top: 16rpx;
   padding: 8rpx 24rpx;
+  background: #fffdf9;
 }
 
 .info-row {
@@ -152,7 +154,7 @@ async function shareToCommunity() {
 .share-button {
   height: 64rpx;
   margin: 16rpx auto 0;
-  border-radius: 32rpx;
+  border-radius: 22rpx;
   font-size: 22rpx;
   line-height: 60rpx;
 }
@@ -160,7 +162,7 @@ async function shareToCommunity() {
 .share-button {
   width: 100%;
   border: 2rpx solid var(--border);
-  background: #fff;
+  background: #fffdf9;
   color: var(--dark-orange);
 }
 

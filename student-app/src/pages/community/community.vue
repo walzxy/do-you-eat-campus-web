@@ -295,47 +295,47 @@ function formatTime(value) {
 
 .community-tabs {
   display: flex;
-  gap: 30rpx;
-  margin-top: 28rpx;
+  gap: 34rpx;
+  margin-top: 24rpx;
   border-bottom: 2rpx solid rgba(242, 215, 190, 0.6);
 }
 
 .community-tab {
-  padding: 0 4rpx 14rpx;
+  padding: 0 4rpx 16rpx;
   color: var(--muted);
   font-size: 24rpx;
 }
 
 .community-tab.active {
   color: var(--dark-orange);
-  border-bottom: 5rpx solid var(--dark-orange);
+  border-bottom: 4rpx solid var(--main);
   font-weight: 750;
 }
 
 .search-row {
   display: flex;
   gap: 12rpx;
-  margin-top: 20rpx;
+  margin-top: 18rpx;
 }
 
 .community-search {
   flex: 1;
-  height: 62rpx;
+  height: 72rpx;
   box-sizing: border-box;
   padding: 0 18rpx;
   border: 2rpx solid var(--border);
-  border-radius: 18rpx;
-  background: #fff;
+  border-radius: 20rpx;
+  background: #fffdf9;
   color: var(--text);
   font-size: 22rpx;
 }
 
 .search-button {
-  height: 62rpx;
+  height: 72rpx;
   margin: 0;
   padding: 0 20rpx;
-  border-radius: 18rpx;
-  background: var(--dark-orange);
+  border-radius: 20rpx;
+  background: var(--main);
   color: #fff;
   font-size: 22rpx;
   line-height: 58rpx;
@@ -346,7 +346,7 @@ function formatTime(value) {
   align-items: center;
 }
 
-.rating-entry { width: 100%; margin-top: 24rpx; border: 2rpx solid var(--border); border-radius: 22rpx; background: var(--light-orange); color: var(--dark-orange); font-size: 25rpx; font-weight: 700; }
+.rating-entry { width: 100%; height: 76rpx; margin-top: 22rpx; border: 2rpx solid var(--border); border-radius: 22rpx; background: var(--light-orange); color: var(--dark-orange); font-size: 24rpx; font-weight: 700; }
 
 .ranking-index {
   width: 46rpx;
@@ -550,7 +550,8 @@ function formatTime(value) {
   margin-top: 18rpx;
   padding: 16rpx;
   border-radius: 20rpx;
-  background: #fff4e8;
+  border: 2rpx solid rgba(242, 215, 190, 0.78);
+  background: #fffaf4;
 }
 
 .post-dish-icon {
@@ -591,7 +592,8 @@ function formatTime(value) {
   margin-top: 16rpx;
   padding: 16rpx;
   border-radius: 20rpx;
-  background: rgba(255, 255, 255, 0.65);
+  border: 2rpx solid rgba(242, 215, 190, 0.7);
+  background: rgba(255, 253, 249, 0.86);
 }
 
 .comment-row {

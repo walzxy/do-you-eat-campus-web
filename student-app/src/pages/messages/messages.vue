@@ -2,7 +2,7 @@
   <view class="page-shell">
     <view class="content-width">
       <text class="page-title">消息</text>
-      <text class="page-subtitle">这里会放点赞、回复、收藏和系统通知。</text>
+      <text class="page-subtitle">点赞、评论和回复都会显示在这里。</text>
       <view class="message-heading">
         <text class="section-title">最近消息</text>
         <text class="unread-count" v-if="unread">{{ unread }} 条未读</text>
@@ -90,8 +90,10 @@ function formatTime(value) {
 
 .message-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 16rpx;
+  padding: 20rpx;
+  background: #fffdf9;
 }
 
 .message-row.unread {
@@ -102,9 +104,10 @@ function formatTime(value) {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 70rpx;
-  height: 70rpx;
-  border-radius: 24rpx;
+  flex: 0 0 64rpx;
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 20rpx;
   background: var(--light-orange);
   color: var(--dark-orange);
   font-size: 32rpx;

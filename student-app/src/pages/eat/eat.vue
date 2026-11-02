@@ -91,21 +91,24 @@ function openQuickTag(tag) {
 <style scoped>
 .eat-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 20rpx;
 }
+
+.eat-header > view:first-child { flex: 1; min-width: 0; }
+.eat-header .page-title { font-size: 43rpx; line-height: 1.22; }
 
 .status-pill {
   display: flex;
   flex-shrink: 0;
   align-items: center;
   gap: 8rpx;
-  margin-top: 22rpx;
-  padding: 14rpx 18rpx;
+  margin-top: 0;
+  padding: 12rpx 16rpx;
   border: 2rpx solid var(--border);
   border-radius: 30rpx;
-  background: rgba(255, 255, 255, 0.7);
+  background: #fffdf9;
   color: var(--dark-orange);
   font-size: 23rpx;
 }
@@ -117,11 +120,11 @@ function openQuickTag(tag) {
   background: var(--main);
 }
 
-.quick-section { margin-top: 38rpx; }
+.quick-section { margin-top: 32rpx; }
 .quick-heading { display: block; color: var(--text); font-size: 27rpx; font-weight: 800; }
 .quick-scroll { width: 100%; margin-top: 16rpx; white-space: nowrap; }
 .quick-tags { display: inline-flex; gap: 12rpx; padding-bottom: 6rpx; }
-.quick-tag { padding: 14rpx 20rpx; border: 2rpx solid var(--border); border-radius: 28rpx; background: #fff; color: var(--dark-orange); font-size: 24rpx; }
+.quick-tag { padding: 13rpx 20rpx; border: 2rpx solid var(--border); border-radius: 26rpx; background: #fffdf9; color: var(--dark-orange); font-size: 23rpx; transition: background 160ms ease, transform 160ms ease; }
 .quick-tag:active { background: var(--light-orange); }
 
 .choice-title,
@@ -130,7 +133,7 @@ function openQuickTag(tag) {
 }
 
 .section-heading {
-  margin-top: 34rpx;
+  margin-top: 38rpx;
 }
 
 .choice-list {
@@ -140,17 +143,17 @@ function openQuickTag(tag) {
 .choice-card {
   display: flex;
   align-items: center;
-  margin-bottom: 18rpx;
-  padding: 30rpx 26rpx;
+  margin-bottom: 16rpx;
+  padding: 24rpx 22rpx;
 }
 
 .choice-emoji {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100rpx;
-  height: 100rpx;
-  border-radius: 28rpx;
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 24rpx;
   background: #fff0df;
   font-size: 50rpx;
 }

@@ -16,9 +16,20 @@
         <text class="wheel-caption">{{ result?.title || '准备好了吗？' }}</text>
         <text class="wheel-count">{{ loading ? '正在读取菜品…' : `本轮 ${wheelDishes.length} 道菜 · 从 ${candidates.length} 道候选中选出` }}</text>
       </view>
-      <scroll-view v-if="wheelDishes.length" scroll-y="true" class="wheel-menu soft-card">
-        <text v-for="(dish, index) in wheelDishes" :key="dish.dish_id" class="wheel-menu-item">{{ index + 1 }} · {{ dish.title }}</text>
-      </scroll-view>
+      <view v-if="wheelDishes.length" class="wheel-menu-card soft-card">
+        <view class="wheel-menu-heading">
+          <text class="wheel-menu-title">本轮候选</text>
+          <text class="wheel-menu-hint">编号与转盘分区对应</text>
+        </view>
+        <scroll-view scroll-y="true" class="wheel-menu">
+          <view class="wheel-menu-grid">
+            <view v-for="(dish, index) in wheelDishes" :key="dish.dish_id" class="wheel-menu-item">
+              <text class="wheel-menu-number">{{ String(index + 1).padStart(2, '0') }}</text>
+              <text class="wheel-menu-name">{{ dish.title }}</text>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
 
       <view v-if="error" class="error-card soft-card">{{ error }}</view>
       <button class="primary-button spin-button" :disabled="loading || spinning || !wheelDishes.length" @click="spin">
@@ -51,7 +62,8 @@ const wheelDishes = ref([])
 const wheelBackground = computed(() => {
   const count = wheelDishes.value.length || 1
   const step = 360 / count
-  const stops = wheelDishes.value.map((_, index) => `${index % 2 ? '#ffd19e' : '#fff0d8'} ${index * step}deg ${(index + 1) * step}deg`)
+  const colors = ['#fff0df', '#ffd8b2', '#ffe7cf', '#ffc98f', '#fff4e8']
+  const stops = wheelDishes.value.map((_, index) => `${colors[index % colors.length]} ${index * step}deg ${(index + 1) * step}deg`)
   return `conic-gradient(${stops.length ? stops.join(', ') : '#fff0d8'})`
 })
 const rotation = ref(0)
@@ -144,11 +156,11 @@ function spinAgain() {
   flex-direction: column;
   align-items: center;
   margin-top: 30rpx;
-  padding: 30rpx 12rpx 28rpx;
+  padding: 28rpx 18rpx 26rpx;
 }
 
-.wheel-stage { position: relative; width: 520rpx; height: 520rpx; max-width: 100%; }
-.wheel-pointer { position: absolute; z-index: 2; top: -16rpx; left: 50%; transform: translateX(-50%); color: var(--dark-orange); font-size: 58rpx; }
+.wheel-stage { position: relative; width: 540rpx; height: 540rpx; max-width: 100%; }
+.wheel-pointer { position: absolute; z-index: 2; top: -17rpx; left: 50%; transform: translateX(-50%); color: var(--dark-orange); font-size: 60rpx; text-shadow: 0 4rpx 8rpx rgba(130, 76, 34, 0.12); }
 .wheel-ring {
   display: flex;
   align-items: center;
@@ -157,15 +169,23 @@ function spinAgain() {
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  border: 12rpx solid #ffb16e;
+  border: 12rpx solid var(--soft-accent);
   border-radius: 50%;
   background: repeating-conic-gradient(from 0deg, #ffe3bc 0deg 44deg, #fff2df 44deg 45deg, #ffb879 45deg 89deg, #fff2df 89deg 90deg);
-  box-shadow: 0 18rpx 30rpx rgba(233, 111, 36, 0.16);
+  box-shadow: 0 16rpx 32rpx rgba(110, 70, 38, 0.14), inset 0 0 0 4rpx rgba(255, 255, 255, 0.78);
 }
 
 .wheel-label { position: absolute; width: 22rpx; transform: translate(-50%, -50%); color: #6a3b21; font-size: 13rpx; font-weight: 750; line-height: 1; text-align: center; }
-.wheel-menu { box-sizing: border-box; height: 220rpx; margin-top: 18rpx; padding: 12rpx 20rpx; }
-.wheel-menu-item { display: block; padding: 6rpx 0; color: var(--muted); font-size: 22rpx; }
+.wheel-count { padding: 10rpx 16rpx; border-radius: 22rpx; background: var(--light-orange); color: var(--dark-orange); }
+.wheel-menu-card { margin-top: 18rpx; padding: 20rpx; }
+.wheel-menu-heading { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14rpx; }
+.wheel-menu-title { color: var(--text); font-size: 27rpx; font-weight: 800; }
+.wheel-menu-hint { color: var(--muted); font-size: 20rpx; }
+.wheel-menu { box-sizing: border-box; height: 300rpx; }
+.wheel-menu-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8rpx 12rpx; }
+.wheel-menu-item { display: flex; align-items: center; min-width: 0; padding: 8rpx; border-radius: 12rpx; background: rgba(255, 255, 255, 0.66); }
+.wheel-menu-number { flex: 0 0 auto; width: 36rpx; height: 34rpx; border-radius: 11rpx; background: #fff0df; color: var(--dark-orange); font-size: 17rpx; font-weight: 800; line-height: 34rpx; text-align: center; }
+.wheel-menu-name { min-width: 0; margin-left: 8rpx; overflow: hidden; color: var(--text); font-size: 19rpx; text-overflow: ellipsis; white-space: nowrap; }
 
 .wheel-core {
   display: flex;
@@ -175,11 +195,12 @@ function spinAgain() {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 100rpx;
-  height: 100rpx;
-  border: 10rpx solid #fff4e8;
+  width: 104rpx;
+  height: 104rpx;
+  border: 10rpx solid #fffdf9;
   border-radius: 50%;
-  background: #fff8ef;
+  background: #fffdf9;
+  box-shadow: 0 4rpx 14rpx rgba(110, 70, 38, 0.12);
   font-size: 46rpx;
 }
 
@@ -208,6 +229,11 @@ function spinAgain() {
 .muted-button {
   width: 100%;
   margin-top: 16rpx;
+  border: 2rpx solid var(--border);
+  border-radius: 24rpx;
+  background: #fffdf9;
+  color: var(--dark-orange);
+  font-size: 26rpx;
 }
 
 .error-card {

@@ -71,12 +71,13 @@ async function save() {
 </script>
 
 <style scoped>
-.taste-card { margin-top: 30rpx; padding: 28rpx; }
+.taste-card { margin-top: 26rpx; padding: 24rpx; background: #fffdf9; }
 .second-title { display: block; margin-top: 34rpx; }
 .chips { display: flex; flex-wrap: wrap; gap: 14rpx; margin-top: 18rpx; }
-.chip { padding: 12rpx 20rpx; border: 2rpx solid var(--border); border-radius: 24rpx; background: #fff; color: var(--muted); font-size: 24rpx; }
+.chip { padding: 12rpx 20rpx; border: 2rpx solid var(--border); border-radius: 20rpx; background: #fffdf9; color: var(--muted); font-size: 23rpx; transition: background 160ms ease, border-color 160ms ease, transform 160ms ease; }
+.chip:active { transform: scale(0.97); }
 .chip.active { border-color: var(--main); background: var(--light-orange); color: var(--dark-orange); font-weight: 700; }
-.other-input { box-sizing: border-box; width: 100%; height: 76rpx; margin-top: 22rpx; padding: 0 18rpx; border: 2rpx solid var(--border); border-radius: 18rpx; background: #fff; font-size: 24rpx; }
+.other-input { box-sizing: border-box; width: 100%; height: 72rpx; margin-top: 20rpx; padding: 0 18rpx; border: 2rpx solid var(--border); border-radius: 18rpx; background: #fffdf9; font-size: 23rpx; }
 .note { display: block; margin-top: 16rpx; color: var(--muted); font-size: 21rpx; line-height: 1.5; }
 .save-button { margin-top: 28rpx; width: 100%; }
 </style>

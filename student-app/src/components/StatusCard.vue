@@ -28,12 +28,12 @@ defineEmits(['select'])
 .status-card {
   display: flex;
   align-items: center;
-  min-height: 132rpx;
+  min-height: 136rpx;
   box-sizing: border-box;
   padding: 22rpx 20rpx;
   border: 2rpx solid var(--border);
-  border-radius: 28rpx;
-  background: rgba(255, 255, 255, 0.76);
+  border-radius: 24rpx;
+  background: rgba(255, 255, 255, 0.9);
   transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
 }
 
@@ -43,7 +43,8 @@ defineEmits(['select'])
 
 .status-card--selected {
   border-color: var(--main);
-  background: var(--light-orange);
+  background: #fff0df;
+  box-shadow: 0 10rpx 24rpx rgba(233, 111, 36, 0.1);
 }
 
 .status-icon {
@@ -52,7 +53,7 @@ defineEmits(['select'])
   justify-content: center;
   width: 66rpx;
   height: 66rpx;
-  border-radius: 22rpx;
+  border-radius: 20rpx;
   background: #fff8ef;
   font-size: 38rpx;
 }

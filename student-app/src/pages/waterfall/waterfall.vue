@@ -99,7 +99,11 @@ function confirmDish() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 42rpx;
+  margin-top: 30rpx;
+  padding: 18rpx 20rpx;
+  border: 2rpx solid var(--border);
+  border-radius: 22rpx;
+  background: rgba(255, 253, 249, 0.78);
 }
 
 .wall-count,
@@ -124,8 +128,8 @@ function confirmDish() {
   margin: 0;
   padding: 0 22rpx;
   border: 2rpx solid var(--border);
-  border-radius: 32rpx;
-  background: #fff;
+  border-radius: 24rpx;
+  background: #fffdf9;
   color: var(--dark-orange);
   font-size: 23rpx;
   line-height: 60rpx;
@@ -146,12 +150,12 @@ function confirmDish() {
   align-items: center;
   justify-content: center;
   min-height: 224rpx;
-  padding: 24rpx 16rpx;
+  padding: 20rpx 14rpx;
   overflow: hidden;
   border: 2rpx solid rgba(242, 215, 190, 0.9);
-  border-radius: 30rpx;
+  border-radius: 24rpx;
   background: linear-gradient(145deg, #fff0df, #ffe0bb);
-  box-shadow: 0 14rpx 30rpx rgba(173, 105, 50, 0.09);
+  box-shadow: 0 10rpx 24rpx rgba(110, 70, 38, 0.08);
   transform: translateY(0);
   transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
 }
@@ -162,7 +166,7 @@ function confirmDish() {
 
 .blind-box--2 {
   min-height: 286rpx;
-  background: linear-gradient(145deg, #ffe8cf, #ffd2a0);
+  background: linear-gradient(145deg, #ffe8d2, #f8cca1);
 }
 
 .blind-box--3 {
@@ -176,8 +180,9 @@ function confirmDish() {
 }
 
 .blind-box.revealed {
-  background: #fffaf5;
-  box-shadow: 0 18rpx 36rpx rgba(233, 111, 36, 0.16);
+  border-color: var(--soft-accent);
+  background: #fffdf9;
+  box-shadow: 0 14rpx 30rpx rgba(233, 111, 36, 0.13);
 }
 
 .blind-box-mark {

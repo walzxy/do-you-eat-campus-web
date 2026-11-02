@@ -81,7 +81,7 @@ function confirmStatus() {
   max-width: 750rpx;
   min-height: auto;
   margin: 0 auto;
-  padding: 54rpx 34rpx calc(46rpx + env(safe-area-inset-bottom));
+  padding: 40rpx 34rpx calc(44rpx + env(safe-area-inset-bottom));
 }
 
 .brand-block {
@@ -107,7 +107,7 @@ function confirmStatus() {
 }
 
 .status-heading {
-  margin-top: 12rpx;
+  margin-top: 4rpx;
 }
 
 .heading-title,
@@ -118,12 +118,13 @@ function confirmStatus() {
 
 .heading-title {
   color: var(--text);
-  font-size: 42rpx;
+  font-size: 38rpx;
   font-weight: 800;
 }
 
 .heading-description {
-  margin: 12rpx auto 0;
+  max-width: 560rpx;
+  margin: 10rpx auto 0;
   color: var(--muted);
   font-size: 23rpx;
   line-height: 1.55;
@@ -132,8 +133,8 @@ function confirmStatus() {
 .status-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18rpx;
-  margin-top: 28rpx;
+  gap: 16rpx;
+  margin-top: 24rpx;
 }
 
 .status-grid > :last-child {
@@ -142,7 +143,7 @@ function confirmStatus() {
 
 .confirm-button {
   width: 100%;
-  margin-top: 30rpx;
+  margin-top: 24rpx;
 }
 
 .local-note {

@@ -184,29 +184,29 @@ function normalizeBudget() {
 </script>
 
 <style scoped>
-.filter-section { margin-top: 24rpx; }
+.filter-section { margin-top: 22rpx; padding: 18rpx 18rpx 20rpx; border: 2rpx solid rgba(242, 215, 190, 0.74); border-radius: 22rpx; background: rgba(255, 253, 249, 0.75); }
 
 .filter-title {
   display: block;
   color: var(--text);
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 800;
 }
 
 .chip-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 14rpx;
-  margin-top: 16rpx;
+  gap: 10rpx;
+  margin-top: 12rpx;
 }
 
 .filter-chip {
-  padding: 14rpx 22rpx;
+  padding: 11rpx 17rpx;
   border: 2rpx solid var(--border);
   border-radius: 30rpx;
   background: rgba(255, 255, 255, 0.72);
   color: var(--muted);
-  font-size: 24rpx;
+  font-size: 22rpx;
 }
 
 .filter-chip.active {
@@ -220,19 +220,19 @@ function normalizeBudget() {
 .custom-budget {
   box-sizing: border-box;
   width: 100%;
-  min-height: 78rpx;
-  margin-top: 12rpx;
-  padding: 20rpx 22rpx;
+  min-height: 72rpx;
+  margin-top: 10rpx;
+  padding: 17rpx 18rpx;
   border: 2rpx solid var(--border);
-  border-radius: 24rpx;
-  background: rgba(255, 255, 255, 0.72);
+  border-radius: 18rpx;
+  background: #fffdf9;
   color: var(--muted);
   font-size: 25rpx;
 }
 
-.custom-budget-link { display: block; margin-top: 14rpx; color: var(--dark-orange); font-size: 23rpx; }
-.cafeteria-scroll { width: 100%; margin-top: 14rpx; white-space: nowrap; }
-.cafeteria-list { display: inline-flex; gap: 12rpx; padding-bottom: 5rpx; }
+.custom-budget-link { display: block; margin-top: 12rpx; color: var(--dark-orange); font-size: 22rpx; }
+.cafeteria-scroll { width: 100%; margin-top: 12rpx; white-space: nowrap; }
+.cafeteria-list { display: inline-flex; gap: 10rpx; padding-bottom: 5rpx; }
 
 .filter-hint {
   display: block;
@@ -243,13 +243,16 @@ function normalizeBudget() {
 
 .search-button {
   width: 100%;
-  margin-top: 26rpx;
+  position: sticky;
+  z-index: 5;
+  bottom: calc(14rpx + env(safe-area-inset-bottom));
+  margin-top: 22rpx;
 }
 
 .result-heading {
-  margin: 32rpx 0 22rpx;
+  margin: 26rpx 0 18rpx;
 }
-.quick-result-head { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; margin-top: 30rpx; }
+.quick-result-head { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; margin-top: 26rpx; }
 
 .empty-card,
 .error-card {
